@@ -62,6 +62,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            margin-top: 2rem;
         }
 
         .section-header::after {
@@ -148,6 +149,7 @@
         .tag-seq { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
         .tag-timeline { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
         .tag-theory { background: rgba(167, 139, 250, 0.1); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.3); }
+        .tag-exam { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); } /* Added missing exam tag CSS */
 
         footer {
             text-align: center;
@@ -162,14 +164,14 @@
 
     <header>
         <h1 class="hero-title">BMS0005.</h1>
-        <p class="hero-subtitle">Foundation Year Bioscienceslogy // Interactive modules, simulations, and database training designed to bridge theory and application.</p>
+        <p class="hero-subtitle">Foundation Year Biosciences // Interactive modules, simulations, and database training designed to bridge theory and application.</p>
     </header>
 
     <div class="container">
         
         <div class="section-header">Active Simulations</div>
         <div class="grid">
-           
+            
             <a href="pcr-sequencing.html" class="card">
                 <div class="tag-container">
                     <span class="tag tag-seq">Data Analysis</span>
@@ -211,6 +213,17 @@
                 </div>
                 <h2 class="card-title">PCR Basics</h2>
                 <p class="card-desc">Review the fundamental mechanisms of Polymerase Chain Reaction, melting temperatures, and gel electrophoresis.</p>
+            </a>
+        </div>
+
+        <div class="section-header">Revision MCQs</div>
+        <div class="grid">
+            <a href="quiz-generator.html" class="card">
+                <div class="tag-container">
+                    <span class="tag tag-exam">Exam Prep</span>
+                </div>
+                <h2 class="card-title">Randomized MCQ Simulator</h2>
+                <p class="card-desc">Test your knowledge under pressure. Generate a random, timed 10-minute exam featuring 10 Foundation Year biology questions (5 options each). Infinitely replayable.</p>
             </a>
         </div>
 
