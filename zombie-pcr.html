@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zombie PCR Rescue - Hard Mode</title> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Base Styles --- */
+        body { font-family: monospace; background-color: black; color: lime; text-align: center; margin: 0; padding: 0; }
+        /* --- Welcome Screen Styles --- */
+        #welcomeScreen { width: 80%; max-width: 800px; margin: 30px auto; padding: 20px; border: 2px solid lime; background-color: #1a1a1a; border-radius: 10px; text-align: left; }
+        #welcomeScreen h1 { text-align: center; color: lime; }
+        #welcomeScreen h2 { color: lime; margin-top: 20px; }
+        #welcomeScreen p, #welcomeScreen li { color: #eee; line-height: 1.6; }
+        #welcomeScreen ul { list-style-type: decimal; padding-left: 25px; margin-bottom: 10px; }
+        #welcomeScreen button { display: block; margin: 20px auto 0 auto; padding: 15px 30px; font-size: 18px; }
+        /* --- Game Container --- */
+        #gameContainer { display: flex; flex-direction: column; align-items: center; width: 100%; padding-bottom: 30px; }
+        #mainGameArea { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        /* --- Canvas --- */
+        canvas { border: 2px solid lime; image-rendering: pixelated; margin-bottom: 20px; max-width: 80%; width: 640px; height: 200px; background-color: #111; }
+        /* --- Timer & Text --- */
+        #timer { font-size: 20px; margin-top: 10px; color: #ff3333; font-weight: bold; }
+        #gameText { margin: 10px auto; font-size: 16px; padding: 10px; border: 1px solid lime; max-width: 80%; min-height: 40px; border-radius: 5px; background-color: #222; color: #eee; }
+        /* --- Terminal Styles --- */
+        .terminal-box { border: 5px solid #0f0; padding: 20px; max-width: 90%; width: 1000px; margin: 20px auto; background-color: #001100; box-shadow: 0 0 15px #0f0; font-family: 'Press Start 2P', monospace; line-height: 1.5; text-align: left; }
+        .terminal-header { color: #33ff33; margin-bottom: 15px; font-size: 14px; }
+        .terminal-sequence-line { white-space: pre-wrap; font-size: 12px; margin-bottom: 5px; min-height: 1em; color: #0f0; }
+        .terminal-box .gene { color: #00ffff; text-decoration: underline; background-color: transparent !important; font-weight: normal !important; }
+        .terminal-box .zombie-virus { color: #ff4444; background-color: #440000 !important; font-weight: bold !important; padding: 2px 0; }
+        .terminal-box .comment { color: #888; font-style: italic; }
+        /* --- Input Field Styles --- */
+        #primerDesignInputs, #pcrSetupInputs, #gelLoadingInputs, #preGelQuestionSection, #gelAnalysisSection { margin-top: 10px; width: 90%; max-width: 1000px; text-align: center; }
+        #primerDesignInputs p, #pcrSetupInputs p, #gelLoadingInputs p, #preGelQuestionSection p, #gelAnalysisSection p { margin: 10px 0 5px 0; }
+        #primerDesignInputs p[title] { cursor: help; }
+        #primerInput, #tempInput, #timeInput, #cyclesInput, #sequenceInput, #forwardPrimerInput, #reversePrimerInput, #volumeInput, #sizeGuessInput { background-color: black; color: lime; border: 1px solid lime; padding: 8px; margin: 5px auto; display: block; width: 90%; max-width: 600px; box-sizing: border-box; font-family: monospace; }
+        #sizeGuessInput { max-width: 150px; display: inline-block; margin-left: 10px;}
+        label { margin-top: 10px; }
+        /* --- Checkbox Style --- */
+        .checkbox-group { margin-top: 15px; text-align: left; display: inline-block;}
+        .checkbox-item { margin-bottom: 5px; }
+        .checkbox-item input[type="checkbox"] { margin-right: 8px; accent-color: lime; }
+        /* --- General button styles --- */
+        button { background-color: lime; color: black; border: none; padding: 10px 20px; margin: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s ease; border-radius: 3px; font-weight: bold; }
+        button.back-button { background-color: #555; color: #eee; }
+        button.back-button:hover:not(:disabled) { background-color: #777; }
+        button:hover:not(:disabled) { background-color: #aaff00; }
+        button:disabled { background-color: #444; color: #888; cursor: not-allowed; }
+        .button-container { margin-top: 15px; }
+        /* --- Other Sections --- */
+        .quiz-question { margin: 15px auto; padding: 15px; border: 1px solid lime; border-radius: 5px; max-width: 80%; text-align: left; background-color: #1a1a1a; }
+        .quiz-question p { margin-bottom: 10px; font-weight: bold; }
+        .quiz-option { margin: 8px 0px 8px 5px; display: block; text-align: left; }
+        .quiz-option input[type="radio"] { margin-right: 8px; accent-color: lime; }
+        #quizSection { text-align: center; max-width: 80%; margin-left: auto; margin-right: auto; }
+        #quizResults { margin-top: 20px; font-size: 18px; font-weight: bold; padding: 15px; border: 2px solid lime; border-radius: 5px; background-color: #222; max-width: 80%; margin-left: auto; margin-right: auto; }
+        #quizFeedback { margin-top: 10px; padding: 10px; border-radius: 3px; font-size: 14px; max-width: 80%; margin-left: auto; margin-right: auto; }
+        #quizFeedback.correct { background-color: rgba(0, 255, 0, 0.2); border: 1px solid lime; }
+        #quizFeedback.incorrect { background-color: rgba(255, 0, 0, 0.2); border: 1px solid red; }
+        #quizFeedback p { margin: 5px 0; }
+        #gameExplanation { margin-top: 30px; padding: 15px; border: 1px solid lime; border-radius: 5px; background-color: #222; color: #eee; max-width: 80%; text-align: left; margin-left: auto; margin-right: auto; line-height: 1.6; }
+        #gameExplanation h2 { font-size: 20px; color: lime; margin-bottom: 10px; }
+        #gameExplanation ul { list-style-type: none; padding-left: 0; margin-bottom: 10px; }
+        #gameExplanation li { font-size: 16px; margin-bottom: 8px; }
+        #sequenceAlignmentContainer { margin: 15px auto; max-width: 90%; width: 1000px; border: 1px solid lime; background-color: #111; padding: 10px; overflow-x: auto; }
+        #sequenceAlignmentContainer pre { font-size: 14px; margin: 0; white-space: pre; line-height: 1.4; color: #ccc; font-family: monospace; }
+        #sequenceAlignmentContainer .match { color: lime; font-weight: bold; background-color: rgba(0, 255, 0, 0.1); }
+        #sequenceAlignmentContainer .mismatch { color: red; font-weight: bold; background-color: rgba(255, 0, 0, 0.15); text-decoration: underline; }
+        #sequenceAlignmentContainer .primer-label { color: cyan; margin-right: 5px; }
+        #sequenceAlignmentContainer .no-bind { color: orange; }
+        #sequenceAlignmentContainer .product-size { color: yellow; margin-top: 5px; display: block; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="welcomeScreen">
+         <h1>Welcome to Zombie PCR Rescue!</h1>
+         <h2>How to Play (HARD MODE):</h2>
+         <p>Time is shorter and parameters are stricter. Proceed through timed stages:</p>
+         <ul>
+             <li>Primer Design: Terminal shows scan. Target auto-loaded. Design Fwd/Rev Primers (20-25bp). Check binding, orientation, Tm, structure. Expected size shown. Click 'Proceed' if valid.</li>
+             <li>PCR Setup: Configure Temp, Time, Cycles. Select ALL necessary components. Parameters must be biologically realistic for your product!</li>
+             <li>Pre-Gel Check: Answer question about necessary gel components.</li>
+             <li>Gel Loading: Calculate and pipette the correct volume based on the new lab instructions.</li>
+             <li>Gel Run: Watch the simulated gel run animation. Auto-proceeds.</li>
+             <li>Gel Analysis: Interpret the final simulated gel (Band matching expected size?). Input size, then choose Yes/No.</li>
+             <li>Final Quiz: Test your PCR knowledge.</li>
+         </ul>
+         <p style="color:red; font-weight:bold;">Running out of time fails the mission! Good luck!</p>
+         <button id="startGameButton">Start Game!</button>
+    </div>
+
+    <div id="gameContainer">
+        <div id="mainGameArea" class="hidden">
+             <canvas id="gameCanvas" width="640" height="200" class="hidden"></canvas>
+             <div id="timer">Time Left: --:--</div>
+             <div id="gameText">Loading...</div>
+
+             <div id="primerDesignTerminal" class="terminal-box hidden">
+                  <div class="terminal-header">[BIOSCAN TERMINAL] - Z-VIRUS SEARCH INITIATED...</div>
+                  <div id="terminalSequenceDisplay"></div>
+             </div>
+
+             <div id="primerDesignInputs" class="hidden">
+                  <p>TARGET SEQUENCE (AUTO-LOADED):</p>
+                  <input type="text" id="sequenceInput" placeholder="Loading target..." readonly>
+                  <p title="Enter 20-25 bases (ACGT only) that exactly match a segment near the start of the Target Sequence. This defines the beginning of the DNA region to copy.">Enter Forward Primer (20-25 bases):</p>
+                  <input type="text" id="forwardPrimerInput" placeholder="e.g., ATCG...">
+                  <p title="Enter 20-25 bases (ACGT only). This sequence's *reverse complement* must match a segment near the end of the Target Sequence, *after* the forward primer binds. It defines the end of the region to copy.">Enter Reverse Primer (20-25 bases):</p>
+                  <input type="text" id="reversePrimerInput" placeholder="e.g., CGAT...">
+                  <div class="button-container">
+                       <button id="checkPrimersButton" onclick="checkPrimers()">Check Primers</button>
+                       <button id="proceedToPcrButton" class="hidden" onclick="proceedToPcrSetup()">Proceed to PCR Setup</button>
+                   </div>
+                   <div id="sequenceAlignmentContainer" class="hidden"><pre id="sequenceAlignment"></pre></div>
+              </div>
+
+             <div id="pcrSetupInputs" class="hidden">
+                 <p>Set Strict PCR Parameters:</p>
+                 <label for="tempInput">Denaturation Temp (°C):</label><input type="number" id="tempInput" >
+                 <label for="timeInput">Anneal/Extend Time (s):</label><input type="number" id="timeInput" >
+                 <label for="cyclesInput">Number of Cycles:</label><input type="number" id="cyclesInput" >
+                 <p>Select Required PCR Components:</p>
+                 <div class="checkbox-group">
+                      <div class="checkbox-item"><input type="checkbox" id="primersCheckbox"><label for="primersCheckbox">Forward/Reverse Primers</label></div>
+                      <div class="checkbox-item"><input type="checkbox" id="taqCheckbox"><label for="taqCheckbox">Taq Polymerase</label></div>
+                      <div class="checkbox-item"><input type="checkbox" id="dntpCheckbox"><label for="dntpCheckbox">dNTPs (Nucleotides)</label></div>
+                      <div class="checkbox-item"><input type="checkbox" id="mgcl2Checkbox"><label for="mgcl2Checkbox">MgCl2 (Magnesium)</label></div>
+                      <div class="checkbox-item"><input type="checkbox" id="bufferCheckbox"><label for="bufferCheckbox">Buffer Solution</label></div>
+                 </div>
+                 <div class="button-container">
+                     <button id="backToPrimersButton" class="back-button" onclick="goBackToPrimerDesign()">Back to Primer Design</button>
+                     <button id="checkPcrSettingsButton" onclick="checkPCRSettings()">Check PCR Settings</button>
+                     <button id="proceedToGelButton" class="hidden" onclick="proceedToPreGelQuestion()">Proceed to Pre-Gel Check</button>
+                 </div>
+             </div>
+
+             <div id="preGelQuestionSection" class="hidden">
+                  <p>Before running the gel, what essential items must be included in the electrophoresis setup for proper analysis and interpretation?</p>
+                  <div class="checkbox-group">
+                      <div class="checkbox-item"><input type="checkbox" id="ladderCheck"><label for="ladderCheck">DNA Ladder (Size Standard)</label></div>
+                      <div class="checkbox-item"><input type="checkbox" id="posControlCheck"><label for="posControlCheck">Positive Control Sample</label></div>
+                      <div class="checkbox-item"><input type="checkbox" id="negControlCheck"><label for="negControlCheck">Negative Control Sample (No Template)</label></div>
+                      <div class="checkbox-item"><input type="checkbox" id="waterCheck"><label for="waterCheck">Distilled Water Only Lane</label></div>
+                      <div class="checkbox-item"><input type="checkbox" id="dyeCheck"><label for="dyeCheck">Loading Dye (in samples)</label></div>
+                       <div class="checkbox-item"><input type="checkbox" id="agaroseCheck"><label for="agaroseCheck">Agarose Powder</label></div>
+                  </div>
+                   <div class="button-container">
+                       <button onclick="checkPreGelAnswer()">Confirm Selections</button>
+                   </div>
+              </div>
+
+             <div id="gelLoadingInputs" class="hidden">
+                  <p>Instruction: You have a <strong style="color:yellow;">50 µL</strong> PCR reaction. You need to load <strong style="color:yellow;">20%</strong> of the total volume into the well.</p>
+                  <label for="volumeInput">Volume to Pipette (µL): </label>
+                  <input type="number" id="volumeInput" placeholder="Enter calculated volume">
+                   <div class="button-container">
+                       <button id="backToPcrButton" class="back-button" onclick="goBackToPcrSetup()">Back to PCR Setup</button>
+                       <button onclick="loadGelSample()">Load Sample into Gel</button>
+                   </div>
+              </div>
+
+             <div id="gelAnalysisSection" class="hidden">
+                 <p>Analysis Step 1: Enter the expected product size (bp) based on your primer design.</p>
+                 <div>
+                     <label for="sizeGuessInput">Expected Size (bp):</label>
+                     <input type="number" id="sizeGuessInput">
+                     <button id="checkSizeButton" onclick="checkSizeGuess()">Check Size</button>
+                 </div>
+                 <p id="gelAnalysisStep2Text" class="hidden">Analysis Step 2: Does the gel result on screen match this expected size?</p>
+                  <div class="button-container">
+                     <button id="gelYesButton" onclick="analyzeGel(true)" class="hidden" disabled>Yes, Size Matches</button>
+                     <button id="gelNoButton" onclick="analyzeGel(false)" class="hidden" disabled>No, Size Does Not Match / No Band</button>
+                 </div>
+             </div>
+
+             <div id="quizSection" class="hidden">
+                  <div id="quizQuestions"></div> <div id="quizFeedback" class="hidden"></div>
+                   <div class="button-container"><button id="quizSubmitButton" onclick="submitQuiz()">Submit Answer</button></div>
+                  <div id="quizResults" class="hidden"></div>
+              </div>
+         </div>
+
+        <div id="gameExplanation" class="hidden">
+             <h2>Game Stages Reference</h2>
+             <ul>
+                 <li><strong>Primer Design:</strong> Design Fwd/Rev Primers. Expected size shown to be noted for gel electrophoresis.</li>
+                 <li><strong>PCR Setup:</strong> Set Temp, Time, Cycles. Select ALL components required. Be exact!</li>
+                 <li><strong>Pre-Gel Check:</strong> Select necessary gel items.</li>
+                 <li><strong>Gel Loading:</strong> Calculate and pipette correct volume.</li>
+                 <li><strong>Gel Analysis:</strong> Interpret simulated gel. Input size, then choose Yes/No.</li>
+             </ul>
+             </div>
+    </div>
+
+    <script>
+        // --- DOM Element References --- 
+        const welcomeScreen = document.getElementById('welcomeScreen'); 
+        const sequenceAlignmentPre = document.getElementById('sequenceAlignment');
+        const startGameButton = document.getElementById('startGameButton'); 
+        const gameContainer = document.getElementById('gameContainer'); 
+        const mainGameArea = document.getElementById('mainGameArea'); 
+        const gameExplanation = document.getElementById('gameExplanation'); 
+        const canvas = document.getElementById('gameCanvas'); 
+        const ctx = canvas.getContext('2d'); 
+        const timerDisplay = document.getElementById('timer'); 
+        const gameTextDisplay = document.getElementById('gameText'); 
+        const primerDesignTerminal = document.getElementById('primerDesignTerminal'); 
+        const terminalSequenceDisplay = document.getElementById('terminalSequenceDisplay'); 
+        const primerDesignInputs = document.getElementById('primerDesignInputs'); 
+        const pcrSetupInputs = document.getElementById('pcrSetupInputs'); 
+        const preGelQuestionSection = document.getElementById('preGelQuestionSection'); 
+        const gelLoadingInputs = document.getElementById('gelLoadingInputs'); 
+        const gelAnalysisSection = document.getElementById('gelAnalysisSection'); 
+        const quizSection = document.getElementById('quizSection'); 
+        const quizQuestionsDiv = document.getElementById('quizQuestions'); 
+        const quizFeedbackDiv = document.getElementById('quizFeedback'); 
+        const quizSubmitButton = document.getElementById('quizSubmitButton'); 
+        const quizResultsDiv = document.getElementById('quizResults'); 
+        const sequenceInput = document.getElementById('sequenceInput'); 
+        const forwardPrimerInput = document.getElementById('forwardPrimerInput'); 
+        const reversePrimerInput = document.getElementById('reversePrimerInput'); 
+        const sequenceAlignmentContainer = document.getElementById('sequenceAlignmentContainer'); 
+        const checkPrimersButton = document.getElementById('checkPrimersButton'); 
+        const proceedToPcrButton = document.getElementById('proceedToPcrButton'); 
+        const checkPcrSettingsButton = document.getElementById('checkPcrSettingsButton'); 
+        const proceedToGelButton = document.getElementById('proceedToGelButton'); 
+        const volumeInput = document.getElementById('volumeInput');
+        const primersCheckbox = document.getElementById('primersCheckbox'); const taqCheckbox = document.getElementById('taqCheckbox'); const dntpCheckbox = document.getElementById('dntpCheckbox'); const mgcl2Checkbox = document.getElementById('mgcl2Checkbox'); const bufferCheckbox = document.getElementById('bufferCheckbox');
+        const backToPrimersButton = document.getElementById('backToPrimersButton'); const backToPcrButton = document.getElementById('backToPcrButton');
+        const ladderCheck = document.getElementById('ladderCheck'); const posControlCheck = document.getElementById('posControlCheck'); const negControlCheck = document.getElementById('negControlCheck'); const waterCheck = document.getElementById('waterCheck'); const dyeCheck = document.getElementById('dyeCheck'); const agaroseCheck = document.getElementById('agaroseCheck');
+        const sizeGuessInput = document.getElementById('sizeGuessInput'); const checkSizeButton = document.getElementById('checkSizeButton'); const gelAnalysisStep2Text = document.getElementById('gelAnalysisStep2Text'); const gelYesButton = document.getElementById('gelYesButton'); const gelNoButton = document.getElementById('gelNoButton');
+
+        // --- Game State Variables --- 
+        let gameState = 'welcome'; let timeLeft = 0; let interval; let forwardPrimer = ""; let reversePrimer = ""; let pcrSettings = {}; let pcrSuccess = false; let quizScore = 0; let currentQuestionIndex = 0; let quizQuestionsArray = []; let targetSequence = ""; let calculatedProductSize = "N/A";
+        
+        // NEW MATH CHALLENGE: 20% of 50uL
+        const CORRECT_VOLUME = 10;
+
+        // --- Terminal Animation Variables (Harder Sequence) --- 
+        const terminalSequenceLines = [ 
+            "Scanning Sector 7G...", 
+            "Analyzing Sample #4812...", 
+            "ATGCGTACGTTAGCGATCGATAGCTAGCTAGCGTTACGTAGCTAA", 
+            "ACGTGCTAGCTAGCATCGATCGTACTAGCTAGCTAGTCAGTCTAGC", 
+            "<span class=\"gene\">ATGAAACGTACTGCTGAGCTAGCTTACGTTAGCGTACGACTTAGTAGCTTAA</span> <span class=\"comment\">// Gene ZP-1</span>", 
+            "CAGTACGTAGCTAGCTGACTGACTAGTTAGCGTAGCTGACTAGCTG", 
+            "<span class=\"gene\">ATGGGCTAGCTAGGCTTACGATCGTAAAGCTACGTGACTAGCGTATAG</span> <span class=\"comment\">// Gene ZP-2</span>", 
+            "GCTAGCTAGCTAGCTGACGATCGTACTAGCTACGTAGCTAGCATCG", 
+            "ALERT! Anomalous sequence detected!", 
+            "<span class=\"zombie-virus\">ATGCGAGAGATTCGTAGGGGTTCTGACTGACTAGCGCTAGCTGCTGCTATAACGTGATCGTAGCTAGCTGATCGATCGTACGATCGTAGCTAGCTGATCGA</span> <span class=\"comment\">// !! Z-VIRUS CONFIRMED (101bp) !!</span>", 
+            "Isolating Z-Virus sequence...", 
+            "AGCTAGCTGACTGACTGACTGACGTAGCTGACTAGCTAGCTAGCTA", 
+            "TACGTAGCTAGCTAGCTAGTCGATCGTACGTAGCTAGTCGATCGTA", 
+            "Scan complete. Target loaded." 
+        ];
+        let terminalLineIndex = 0; let terminalTimeout; let extractedZombieSequence = "";
+
+        // --- Animation Variables ---
+        let animationFrameId = null; let lastTimestamp = 0; let animationElapsedTime = 0; let pcrCycleCount = 0; const GEL_RUN_DURATION_MS = 300 * 1000; const GEL_START_Y = 50; let gelBandYPos = GEL_START_Y;
+        const ladderBands = [ { bp: 1000, y: 90 }, { bp: 750, y: 100 }, { bp: 500, y: 115 }, { bp: 250, y: 135 }, { bp: 100, y: 160 }, { bp: 50, y: 175 } ]; const GEL_TARGET_BAND_Y = 160; // adjusted slightly for 101bp
+
+
+        // --- Game Logic Functions --- 
+        function startGame() { welcomeScreen.classList.add('hidden'); mainGameArea.classList.remove('hidden'); gameExplanation.classList.remove('hidden'); stopAnimation(); initializePrimerDesignStage(); }
+        
+        // Timer reduced to 10 minutes (600s) for Primer Design
+        function initializePrimerDesignStage() { console.log("Init PrimerDesign"); gameState = 'primerDesign'; timeLeft = 600; pcrSuccess = false; calculatedProductSize = "N/A"; stopAnimation(); hideAllSections(); canvas.classList.add('hidden'); primerDesignTerminal.classList.remove('hidden'); primerDesignInputs.classList.remove('hidden'); gameTextDisplay.textContent = "Analyzing sequences... Design primers. (HURRY!)"; terminalSequenceDisplay.innerHTML = ''; terminalLineIndex = 0; clearTimeout(terminalTimeout); extractedZombieSequence = ""; sequenceInput.value = "Loading target..."; sequenceInput.readOnly = true; forwardPrimerInput.value = ""; reversePrimerInput.value = ""; proceedToPcrButton.classList.add('hidden'); checkPrimersButton.disabled = false; sequenceAlignmentContainer.classList.add('hidden'); typeTerminalLine(); startTimer(); }
+        
+        // Timer reduced to 5 minutes (300s) for PCR Setup
+        function initializePcrSetupStage() { console.log("Init PCRSetup"); gameState = 'pcrSetup'; timeLeft = 300; stopAnimation(); hideAllSections(); pcrSetupInputs.classList.remove('hidden'); canvas.classList.remove('hidden'); checkPcrSettingsButton.disabled = false; proceedToGelButton.classList.add('hidden'); primersCheckbox.checked = false; taqCheckbox.checked = false; dntpCheckbox.checked = false; mgcl2Checkbox.checked = false; bufferCheckbox.checked = false; gameTextDisplay.textContent = `Set up strict PCR parameters. Expected product: ${calculatedProductSize} bp.`; startTimer(); startAnimation(); }
+        
+        // Timer 2 minutes (120s)
+        function initializePreGelQuestionStage() { console.log("Init PreGelQuestion"); gameState = 'preGelQuestion'; timeLeft = 120; stopAnimation(); hideAllSections(); preGelQuestionSection.classList.remove('hidden'); canvas.classList.remove('hidden'); ladderCheck.checked = false; posControlCheck.checked = false; negControlCheck.checked = false; waterCheck.checked = false; dyeCheck.checked = false; agaroseCheck.checked = false; gameTextDisplay.textContent = "Knowledge Check: Prepare the gel setup."; startTimer(); startAnimation(); }
+        
+        // Timer 2 minutes (120s)
+        function initializeGelLoadingStage() { console.log("Init GelLoading"); gameState = 'gelLoading'; timeLeft = 120; stopAnimation(); hideAllSections(); gelLoadingInputs.classList.remove('hidden'); canvas.classList.remove('hidden'); volumeInput.value = ''; gameTextDisplay.textContent = `PCR complete! Calculate and load correct volume.`; startTimer(); startAnimation(); } 
+        
+        // Timer stays 300s for Gel Run
+        function initializeGelRunStage() { console.log("Init GelRun"); gameState = 'gelRun'; timeLeft = 300; stopAnimation(); hideAllSections(); canvas.classList.remove('hidden'); gameTextDisplay.textContent = `Starting gel run...`; gelBandYPos = GEL_START_Y; startTimer(); startAnimation(); }
+        
+        function initializeGelAnalysisStage() { console.log("Init GelAnalysis"); gameState = 'gelAnalysis'; timeLeft = 600; stopAnimation(); hideAllSections(); gelAnalysisSection.classList.remove('hidden'); canvas.classList.remove('hidden'); sizeGuessInput.value = ''; checkSizeButton.disabled = false; sizeGuessInput.readOnly = false; gelYesButton.disabled = true; gelNoButton.disabled = true; gelYesButton.classList.add('hidden'); gelNoButton.classList.add('hidden'); gelAnalysisStep2Text.classList.add('hidden'); gameTextDisplay.textContent = "Gel run complete. Input the exact expected size (bp) first."; startTimer(); startAnimation(); }
+        
+        function initializeQuizStage() { console.log("Init Quiz"); gameState = 'quiz'; timeLeft = 900; stopAnimation(); hideAllSections(); quizSection.classList.remove('hidden'); canvas.classList.remove('hidden'); quizResultsDiv.classList.add('hidden'); gameTextDisplay.textContent = "Prepare for the final challenge!"; generateQuiz(); startTimer(); startAnimation(); }
+        
+        function typeTerminalLine() { if (terminalLineIndex < terminalSequenceLines.length) { const lineContent = terminalSequenceLines[terminalLineIndex]; const lineDiv = document.createElement('div'); lineDiv.className = 'terminal-sequence-line'; lineDiv.innerHTML = lineContent; terminalSequenceDisplay.appendChild(lineDiv); terminalSequenceDisplay.scrollTop = terminalSequenceDisplay.scrollHeight; if (lineContent.includes('class="zombie-virus"')) { const tempDiv = document.createElement('div'); tempDiv.innerHTML = lineContent; const span = tempDiv.querySelector('.zombie-virus'); if (span) { extractedZombieSequence = span.textContent; sequenceInput.value = extractedZombieSequence; targetSequence = extractedZombieSequence; } } terminalLineIndex++; terminalTimeout = setTimeout(typeTerminalLine, 200); } else { sequenceInput.readOnly = false; } }
+        function startTimer() { clearInterval(interval); animationElapsedTime = 0; lastTimestamp = performance.now(); if (timeLeft <= 0) { timerDisplay.textContent = "Time Left: 0:00"; return; } timerDisplay.textContent = `Time Left: ${Math.floor(timeLeft / 60)}:${(timeLeft % 60) < 10 ? '0' : ''}${timeLeft % 60}`; interval = setInterval(() => { timeLeft--; const minutes = Math.floor(timeLeft / 60); const seconds = timeLeft % 60; timerDisplay.textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`; if (timeLeft <= 0) { clearInterval(interval); timerDisplay.textContent = "Time Left: 0:00"; handleTimeout(); } }, 1000); }
+        function handleTimeout() { const failedStage = getStageName(gameState); console.log(`Time ran out during ${failedStage} stage.`); clearInterval(interval); stopAnimation(); if (gameState === 'gelRun') { console.log("Gel Run timer expired, proceeding to Analysis."); initializeGelAnalysisStage(); return; } hideAllSections(); gameState = 'gameOver'; gameTextDisplay.textContent = `MISSION FAILED: Time ran out during the ${failedStage} stage.`; quizResultsDiv.innerHTML = "<strong style='color:red;'>GAME OVER - OUT OF TIME</strong>"; quizResultsDiv.classList.remove('hidden'); startAnimation(); }
+        function getStageName(state) { switch(state) { case 'primerDesign': return 'Primer Design'; case 'pcrSetup': return 'PCR Setup'; case 'preGelQuestion': return 'Pre-Gel Check'; case 'gelLoading': return 'Gel Loading'; case 'gelRun': return 'Gel Run Simulation'; case 'gelAnalysis': return 'Gel Analysis'; case 'quiz': return 'Final Quiz'; default: return 'current'; } }
+        function hideAllSections() { primerDesignTerminal.classList.add('hidden'); primerDesignInputs.classList.add('hidden'); pcrSetupInputs.classList.add('hidden'); preGelQuestionSection.classList.add('hidden'); gelLoadingInputs.classList.add('hidden'); gelAnalysisSection.classList.add('hidden'); quizSection.classList.add('hidden'); sequenceAlignmentContainer.classList.add('hidden'); quizResultsDiv.classList.add('hidden'); canvas.classList.add('hidden'); proceedToPcrButton.classList.add('hidden'); proceedToGelButton.classList.add('hidden'); }
+        function renderGame() { if (gameState === 'primerDesign' || gameState === 'welcome') { canvas.classList.add('hidden'); } else { canvas.classList.remove('hidden'); } console.log("RenderGame called for state:", gameState); }
+        function startAnimation() { console.log("Starting animation/display for state:", gameState); if(gameState === 'welcome' || gameState === 'primerDesign'){ console.log("No canvas animation for welcome/primerDesign."); stopAnimation(); return; } if (animationFrameId) { cancelAnimationFrame(animationFrameId); } lastTimestamp = performance.now(); animationElapsedTime = 0; gelBandYPos = GEL_START_Y; pcrCycleCount = pcrSettings.cycles ? (pcrSettings.cycles > 0 ? 1 : 0) : 0; canvas.classList.remove('hidden'); gameLoop(lastTimestamp); }
+        function stopAnimation() { if (animationFrameId) { console.log("Stopping animation"); cancelAnimationFrame(animationFrameId); animationFrameId = null; } }
+        function gameLoop(timestamp) { const deltaTime = timestamp - lastTimestamp; lastTimestamp = timestamp; animationElapsedTime += deltaTime; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height); switch(gameState) { case 'pcrSetup': drawPcrAnimation(timestamp); break; case 'preGelQuestion': drawPreGelScreen(); break; case 'gelLoading': drawGelLoadingScreen(); break; case 'gelRun': drawGelRunAnimation(timestamp, deltaTime); break; case 'gelAnalysis': drawGelAnalysisResult(); break; case 'quiz': drawQuizScreen(); break; case 'gameOver': drawGameOverScreen(); break; } if (animationFrameId !== null) { animationFrameId = requestAnimationFrame(gameLoop); } }
+        function drawPcrAnimation(timestamp) { const machineX = canvas.width / 2 - 100, machineY = 40, machineW = 200, machineH = 120; ctx.fillStyle = '#555'; ctx.fillRect(machineX, machineY, machineW, machineH); ctx.strokeStyle = 'lime'; ctx.strokeRect(machineX, machineY, machineW, machineH); ctx.fillStyle = '#777'; ctx.fillRect(machineX + 10, machineY + 10, machineW - 20, 30); ctx.strokeRect(machineX + 10, machineY + 10, machineW - 20, 30); const blinkSpeed = 500; const isLightOn = Math.floor(timestamp / blinkSpeed) % 2 === 0; ctx.fillStyle = isLightOn ? 'red' : '#500'; ctx.fillRect(machineX + 30, machineY + 60, 15, 15); ctx.fillStyle = !isLightOn ? 'lime' : '#050'; ctx.fillRect(machineX + 60, machineY + 60, 15, 15); ctx.fillStyle = 'black'; ctx.fillRect(machineX + 90, machineY + 55, 100, 50); ctx.fillStyle = 'red'; ctx.font = '14px "Press Start 2P"'; ctx.textAlign = 'left'; const displayTemp = pcrSettings.temp || 95; const displayTime = pcrSettings.time || 30; const cycleDuration = 3000; pcrCycleCount = Math.min(pcrSettings.cycles || 30, Math.floor(animationElapsedTime / cycleDuration) + 1); ctx.fillText(`T:${displayTemp}C`, machineX + 95, machineY + 75); ctx.fillText(`C:${pcrCycleCount}/${pcrSettings.cycles || '?'}`, machineX + 95, machineY + 95); ctx.fillStyle = 'lime'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText("PCR CYCLER Z-1000", canvas.width / 2, machineY + machineH + 15); }
+        function drawPreGelScreen() { ctx.fillStyle = 'lime'; ctx.font = '16px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("Knowledge Check", canvas.width / 2, canvas.height / 2 - 10); ctx.font = '12px monospace'; ctx.fillText("Select required gel items below.", canvas.width / 2, canvas.height / 2 + 20); }
+        function drawGelLoadingScreen() { const gelX = canvas.width / 2 - 150, gelY = 20, gelW = 300, gelH = 160; ctx.strokeStyle = 'lime'; ctx.strokeRect(gelX, gelY, gelW, gelH); ctx.fillStyle = '#222'; ctx.fillRect(gelX + 1, gelY + 1, gelW - 2, gelH - 2); const wellY = gelY + 10, wellW = 20, wellH = 15; ctx.fillStyle = '#000'; for (let i = 0; i < 5; i++) { ctx.fillRect(gelX + 30 + i * (wellW + 20), wellY, wellW, wellH); } ctx.strokeStyle = '#444'; for (let i = 0; i < 5; i++) { const laneX = gelX + 30 + i * (wellW + 20) + wellW / 2; ctx.beginPath(); ctx.moveTo(laneX, wellY + wellH); ctx.lineTo(laneX, gelY + gelH - 10); ctx.stroke(); } const tipX = gelX + 30 + 2 * (wellW + 20) + wellW / 2; const tipY = wellY - 15; ctx.fillStyle = '#ccc'; ctx.beginPath(); ctx.moveTo(tipX - 5, tipY); ctx.lineTo(tipX + 5, tipY); ctx.lineTo(tipX, tipY + 15); ctx.closePath(); ctx.fill(); ctx.fillStyle = 'lime'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText("PREPARE FOR GEL LOADING", canvas.width / 2, gelY + gelH + 15); }
+        function drawGelRunAnimation(timestamp, deltaTime) { const gelX = canvas.width / 2 - 150, gelY = 20, gelW = 300, gelH = 160; const wellY = gelY + 10, wellW = 20, wellH = 15; const ladderLaneX = gelX + 30 + 0 * (wellW + 20); const sampleLaneX = gelX + 30 + 2 * (wellW + 20); ctx.strokeStyle = 'lime'; ctx.strokeRect(gelX, gelY, gelW, gelH); ctx.fillStyle = '#222'; ctx.fillRect(gelX + 1, gelY + 1, gelW - 2, gelH - 2); ctx.fillStyle = '#000'; for (let i = 0; i < 5; i++) { ctx.fillRect(gelX + 30 + i * (wellW + 20), wellY, wellW, wellH); } ctx.strokeStyle = '#444'; for (let i = 0; i < 5; i++) { const laneX = gelX + 30 + i * (wellW + 20) + wellW / 2; ctx.beginPath(); ctx.moveTo(laneX, wellY + wellH); ctx.lineTo(laneX, gelY + gelH - 10); ctx.stroke(); } ctx.fillStyle = '#0ff'; ctx.font = '10px monospace'; ctx.textAlign = 'left'; ladderBands.forEach(band => { ctx.fillRect(ladderLaneX + 5, band.y, 10, 5); ctx.fillStyle = '#ccc'; ctx.fillText(`${band.bp}bp`, ladderLaneX + 20, band.y + 5); ctx.fillStyle = '#0ff'; }); if (pcrSuccess) { const progress = Math.min(1, animationElapsedTime / GEL_RUN_DURATION_MS); gelBandYPos = GEL_START_Y + (GEL_TARGET_BAND_Y - GEL_START_Y) * progress; gelBandYPos = Math.min(gelBandYPos, GEL_TARGET_BAND_Y); ctx.fillStyle = 'lime'; const bandHeight = 5; ctx.fillRect(sampleLaneX + 5, gelBandYPos, 10, bandHeight); } ctx.fillStyle = 'lime'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText("GEL ELECTROPHORESIS - RUNNING...", canvas.width / 2, gelY + gelH + 15); }
+        function drawGelAnalysisResult() { const gelX = canvas.width / 2 - 150, gelY = 20, gelW = 300, gelH = 160; const wellY = gelY + 10, wellW = 20, wellH = 15; const ladderLaneX = gelX + 30 + 0 * (wellW + 20); const sampleLaneX = gelX + 30 + 2 * (wellW + 20); ctx.strokeStyle = 'lime'; ctx.strokeRect(gelX, gelY, gelW, gelH); ctx.fillStyle = '#222'; ctx.fillRect(gelX + 1, gelY + 1, gelW - 2, gelH - 2); ctx.fillStyle = '#000'; for (let i = 0; i < 5; i++) { ctx.fillRect(gelX + 30 + i * (wellW + 20), wellY, wellW, wellH); } ctx.strokeStyle = '#444'; for (let i = 0; i < 5; i++) { const laneX = gelX + 30 + i * (wellW + 20) + wellW / 2; ctx.beginPath(); ctx.moveTo(laneX, wellY + wellH); ctx.lineTo(laneX, gelY + gelH - 10); ctx.stroke(); } ctx.fillStyle = '#0ff'; ctx.font = '10px monospace'; ctx.textAlign = 'left'; ladderBands.forEach(band => { ctx.fillRect(ladderLaneX + 5, band.y, 10, 5); ctx.fillStyle = '#ccc'; ctx.fillText(`${band.bp}bp`, ladderLaneX + 20, band.y + 5); ctx.fillStyle = '#0ff'; }); if (pcrSuccess) { ctx.fillStyle = 'lime'; const bandHeight = 5; const finalBandY = GEL_TARGET_BAND_Y; ctx.fillRect(sampleLaneX + 5, finalBandY, 10, bandHeight); } ctx.fillStyle = 'lime'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText("GEL RESULT - INPUT SIZE & ANALYZE", canvas.width / 2, gelY + gelH + 15); }
+        function drawQuizScreen() { ctx.fillStyle = 'lime'; ctx.font = '16px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("FINAL QUIZ", canvas.width / 2, canvas.height / 2 - 10); ctx.font = '12px monospace'; ctx.fillText("Answer questions below.", canvas.width / 2, canvas.height / 2 + 20); }
+        function drawGameOverScreen() { const winThreshold = quizQuestionsArray.length; const playerWon = (quizScore >= winThreshold); if (playerWon && !gameTextDisplay.textContent.includes("OUT OF TIME")) { const centerX = canvas.width / 2; const groundY = canvas.height - 30; ctx.fillStyle = 'lime'; ctx.fillRect(centerX - 10, groundY - 40, 20, 40); ctx.fillRect(centerX - 15, groundY - 60, 30, 20); ctx.beginPath(); ctx.moveTo(centerX - 10, groundY - 35); ctx.lineTo(centerX - 25, groundY - 55); ctx.moveTo(centerX + 10, groundY - 35); ctx.lineTo(centerX + 25, groundY - 55); ctx.strokeStyle = 'lime'; ctx.lineWidth = 4; ctx.stroke(); ctx.fillStyle = 'yellow'; ctx.font = '20px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("VICTORY!", canvas.width / 2, 40); } else { ctx.fillStyle = 'red'; ctx.font = '20px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("MISSION FAILED", canvas.width / 2, canvas.height / 2); } ctx.fillStyle = 'lime'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText("Check final score below.", canvas.width / 2, canvas.height - 15); }
+
+        // --- Primer Check Logic --- 
+        function checkPrimers() { forwardPrimer = forwardPrimerInput.value.toUpperCase().trim(); reversePrimer = reversePrimerInput.value.toUpperCase().trim(); if (!sequenceInput.readOnly) { targetSequence = sequenceInput.value.toUpperCase().replace(/\s/g, ''); } const validBaseRegex = /^[ACGT]+$/; const validPrimerLengthRegex = /^[ACGT]{20,25}$/; const validSequenceLengthRegex = /^[ACGT]{50,}$/; let errorMessage = ""; pcrSuccess = false; calculatedProductSize = "N/A"; proceedToPcrButton.classList.add('hidden'); checkPrimersButton.disabled = false; if (!targetSequence || !validBaseRegex.test(targetSequence)) { errorMessage = "TARGET sequence error."; } else if (!validSequenceLengthRegex.test(targetSequence)) { errorMessage = `TARGET sequence must be >= 50 bases (current: ${targetSequence.length}).`; } else if (!forwardPrimer || !validBaseRegex.test(forwardPrimer)) { errorMessage = "Forward primer must be A/C/G/T only."; } else if (!validPrimerLengthRegex.test(forwardPrimer)) { errorMessage = `Forward primer must be 20-25 bases (current: ${forwardPrimer.length}).`; } else if (!reversePrimer || !validBaseRegex.test(reversePrimer)) { errorMessage = "Reverse primer must be A/C/G/T only."; } else if (!validPrimerLengthRegex.test(reversePrimer)) { errorMessage = `Reverse primer must be 20-25 bases (current: ${reversePrimer.length}).`; } if (errorMessage) { gameTextDisplay.textContent = `Error: ${errorMessage}`; displayAlignment(targetSequence, forwardPrimer, reversePrimer); return; } const fwdIndex = targetSequence.indexOf(forwardPrimer); const revComp = reverseComplement(reversePrimer); const revCompIndex = targetSequence.indexOf(revComp); if (fwdIndex === -1) { errorMessage = "Forward primer does not bind."; } else if (revCompIndex === -1) { errorMessage = (targetSequence.indexOf(reversePrimer) !== -1) ? "Rev primer found, but its RevComp should bind." : "Rev primer's complement does not bind."; } else if (fwdIndex >= revCompIndex) { errorMessage = "Orientation incorrect! Fwd must start before RevComp binds. Think: 5'...[Fwd]...[RevComp]...3'."; } else if ((revCompIndex + revComp.length) <= (fwdIndex + forwardPrimer.length)) { errorMessage = "Primers overlap incorrectly."; } if (errorMessage) { gameTextDisplay.textContent = `Error: ${errorMessage}`; displayAlignment(targetSequence, forwardPrimer, reversePrimer); return; } const fwdTm = calculateTm(forwardPrimer); const revTm = calculateTm(reversePrimer); const tmDiff = Math.abs(fwdTm - revTm); let tmWarning = (tmDiff > 5) ? `High Tm difference (${tmDiff.toFixed(1)}°C). ` : ""; let structureWarning = ""; if (hasSelfComplementarity(forwardPrimer)) { structureWarning += "Fwd self-comp risk. "; } if (hasSelfComplementarity(reversePrimer)) { structureWarning += "Rev self-comp risk. "; } if (checkForHairpin(forwardPrimer)) { structureWarning += "Fwd hairpin risk. "; } if (checkForHairpin(reversePrimer)) { structureWarning += "Rev hairpin risk. "; } let combinedWarning = (tmWarning + structureWarning).trim(); pcrSuccess = true; calculatedProductSize = (revCompIndex + revComp.length) - fwdIndex; if (combinedWarning) { gameTextDisplay.textContent = `Warning: ${combinedWarning} Primers accepted. Click 'Proceed'.`; } else { gameTextDisplay.textContent = `Primers validated! Tm Diff: ${tmDiff.toFixed(1)}°C. Click 'Proceed'.`; } displayAlignment(targetSequence, forwardPrimer, reversePrimer); proceedToPcrButton.classList.remove('hidden'); checkPrimersButton.disabled = true; }
+
+        // --- Proceed/Back Functions --- 
+        function proceedToPcrSetup() { if (gameState !== 'primerDesign' || !pcrSuccess) return; initializePcrSetupStage(); }
+        function goBackToPrimerDesign() { if (gameState !== 'pcrSetup') return; console.log("Going back to Primer Design"); initializePrimerDesignStage(); }
+        function proceedToPreGelQuestion() { if (gameState !== 'pcrSetup' || !pcrSuccess) return; initializePreGelQuestionStage(); }
+        function goBackToPcrSetup() { if (gameState !== 'gelLoading') return; console.log("Going back to PCR Setup"); initializePcrSetupStage(); }
+
+        // --- Alignment Display Function --- 
+        function displayAlignment(target, fwdPrimer, revPrimer) { sequenceAlignmentPre.innerHTML = ''; let currentProductSize = "N/A"; if (!target) { sequenceAlignmentPre.textContent = "Enter Target Sequence..."; sequenceAlignmentContainer.classList.add('hidden'); return; } const fwdIndex = target.indexOf(fwdPrimer); const revComp = reverseComplement(revPrimer); const revCompIndex = target.indexOf(revComp); if (fwdIndex !== -1 && revCompIndex !== -1 && fwdIndex < revCompIndex && fwdPrimer && revPrimer) { currentProductSize = (revCompIndex + revComp.length) - fwdIndex; } let output = `<span class="primer-label">Target (5'-3'):</span> ${target}\n`; let fwdLine = " ".repeat(target.length); let revCompLine = " ".repeat(target.length); if (fwdIndex !== -1 && fwdPrimer) { let alignedFwd = ""; for(let k=0; k < fwdPrimer.length; k++){ alignedFwd += `<span class="${target[fwdIndex+k] === fwdPrimer[k] ? 'match' : 'mismatch'}">${fwdPrimer[k]}</span>`; } fwdLine = fwdLine.substring(0, fwdIndex) + alignedFwd + fwdLine.substring(fwdIndex + fwdPrimer.length); output += `<span class="primer-label"> Fwd 5'-</span>${fwdLine}<span class="primer-label">-3'</span>\n`; } else { output += `<span class="primer-label"> Fwd 5'-</span> <span class="no-bind">${fwdPrimer ? '--- No Binding ---' : '--- Enter Primer ---'}</span>\n`; } if (revCompIndex !== -1 && revComp) { let alignedRevComp = ""; for(let k=0; k < revComp.length; k++){ alignedRevComp += `<span class="${target[revCompIndex+k] === revComp[k] ? 'match' : 'mismatch'}">${revComp[k]}</span>`; } revCompLine = revCompLine.substring(0, revCompIndex) + alignedRevComp + revCompLine.substring(revCompIndex + revComp.length); output += `<span class="primer-label"> Rev 3'-</span>${revCompLine}<span class="primer-label">-5' (Complement Shown)</span>\n`; } else { output += `<span class="primer-label"> Rev 3'-</span> <span class="no-bind">${revPrimer ? '--- Complement Doesn\'t Bind ---' : '--- Enter Primer ---'}</span>\n`; } output += `\n<span class="product-size">Expected Product Size: ${currentProductSize}${currentProductSize !== 'N/A' ? ' bp' : ''}</span>`; sequenceAlignmentPre.innerHTML = output; sequenceAlignmentContainer.classList.remove('hidden'); }
+
+        // --- Helper Functions --- 
+        function calculateTm(s) { let g=(s.match(/G/g)||[]).length; let c=(s.match(/C/g)||[]).length; let a=(s.match(/A/g)||[]).length; let t=(s.match(/T/g)||[]).length; return 4*(g+c)+2*(a+t); } function reverseComplement(s) { let c=''; const m={'A':'T','T':'A','C':'G','G':'C'}; for(let i=s.length-1;i>=0;i--){c+=m[s[i]];} return c; } function hasSelfComplementarity(s,m=4) { const r=reverseComplement(s); for(let i=0;i<=s.length-m;i++){ for(let j=0;j<=r.length-m;j++){ let ss=s.substring(i,i+m); let rs=r.substring(j,j+m); let oi=s.length-1-(j+m-1); if(i!==oi&&ss===rs){return true;}}} return false;} function checkForHairpin(s,st=5,lp1=3,lp2=7) { for(let i=0;i<=s.length-(st*2+lp1);i++){ const s1=s.substring(i,i+st); for(let j=i+st+lp1;j<=s.length-st;j++){ const s2=s.substring(j,j+st); const ll=j-(i+st); if(ll>lp2) continue; if(s1===reverseComplement(s2)){return true;}}} return false;}
+
+        // --- PCR Settings Check (Strict Mode) --- 
+        function checkPCRSettings() {
+            pcrSettings.temp = parseInt(document.getElementById('tempInput').value); pcrSettings.time = parseInt(document.getElementById('timeInput').value); pcrSettings.cycles = parseInt(document.getElementById('cyclesInput').value);
+            let settingsOk = true; let errorMessage = "";
+             proceedToGelButton.classList.add('hidden'); checkPcrSettingsButton.disabled = false;
+            
+            // STRICTER RANGES
+            if (isNaN(pcrSettings.temp) || pcrSettings.temp < 94 || pcrSettings.temp > 98) { settingsOk = false; errorMessage = "Denat. Temp must be 94-98°C for optimal DNA separation."; }
+            else if (isNaN(pcrSettings.time) || pcrSettings.time < 20 || pcrSettings.time > 45) { settingsOk = false; errorMessage = "Extend time wrong! For a short ~100bp product, 20-45s is optimal."; }
+            else if (isNaN(pcrSettings.cycles) || pcrSettings.cycles < 28 || pcrSettings.cycles > 35) { settingsOk = false; errorMessage = "Cycle count suboptimal. Use 28-35 for standard detection without artifacting."; }
+            else if (!primersCheckbox.checked || !taqCheckbox.checked || !dntpCheckbox.checked || !mgcl2Checkbox.checked || !bufferCheckbox.checked) { settingsOk = false; errorMessage = "Missing essential PCR components. Check selections."; }
+            
+            if (settingsOk && pcrSuccess) { gameTextDisplay.textContent = "PCR setup complete! Click 'Proceed'."; proceedToGelButton.classList.remove('hidden'); checkPcrSettingsButton.disabled = true; }
+            else { pcrSuccess = false; gameTextDisplay.textContent = !settingsOk ? `Error: ${errorMessage}` : "PCR settings ok, but primer stage failed."; }
+         }
+
+         // --- Pre-Gel Answer Check ---
+         function checkPreGelAnswer() {
+              const isLadder = ladderCheck.checked; const isPos = posControlCheck.checked; const isNeg = negControlCheck.checked; const isDye = dyeCheck.checked;
+              const isWater = waterCheck.checked; const isAgarose = agaroseCheck.checked;
+
+              if (isLadder && isDye && isPos && isNeg && !isWater && !isAgarose) {
+                  gameTextDisplay.textContent = "Pre-gel check passed! Ready for loading.";
+                   clearInterval(interval); 
+                   initializeGelLoadingStage(); 
+              } else {
+                   gameTextDisplay.textContent = "Incorrect. Think: What do you load IN the wells for a diagnostic run?";
+              }
+          }
+
+        // --- Gel Loading Interaction (Math Requirement) --- 
+        function loadGelSample() {
+             const enteredVolume = parseInt(volumeInput.value);
+             if (isNaN(enteredVolume)) { gameTextDisplay.textContent = "Invalid volume. Please enter a number."; return; }
+             if (enteredVolume === CORRECT_VOLUME) { console.log("Gel loaded correctly, proceeding to Gel Run."); initializeGelRunStage(); }
+             else { gameTextDisplay.textContent = `Incorrect! You entered ${enteredVolume} µL. Check your math: What is 20% of 50µL?`; }
+         }
+
+        // --- Gel Analysis Step 1: Check Size Guess --- 
+        function checkSizeGuess() {
+             const guess = parseInt(sizeGuessInput.value);
+             if (isNaN(guess)) { gameTextDisplay.textContent = "Invalid size entered. Please enter a number."; return; }
+             const tolerance = 1; const actualSize = parseInt(calculatedProductSize);
+             if (!isNaN(actualSize) && Math.abs(guess - actualSize) <= tolerance) {
+                  gameTextDisplay.textContent = `Expected size ${guess}bp confirmed. Now, does the gel visualization match? Select Yes or No.`;
+                  checkSizeButton.disabled = true; sizeGuessInput.readOnly = true;
+                  gelYesButton.disabled = false; gelNoButton.disabled = false;
+                  gelYesButton.classList.remove('hidden'); gelNoButton.classList.remove('hidden');
+                  gelAnalysisStep2Text.classList.remove('hidden');
+             } else {
+                   gameTextDisplay.textContent = `Incorrect expected size. The calculated size was ${calculatedProductSize}bp. Try again.`;
+                   sizeGuessInput.value = ''; gelYesButton.disabled = true; gelNoButton.disabled = true;
+                   gelYesButton.classList.add('hidden'); gelNoButton.classList.add('hidden');
+                   gelAnalysisStep2Text.classList.add('hidden');
+             }
+         }
+
+        // --- Gel Analysis Step 2 Logic --- 
+        function analyzeGel(userSaysBandPresent) {
+             stopAnimation(); hideAllSections(); gelAnalysisSection.classList.add('hidden');
+             if (userSaysBandPresent === pcrSuccess) { gameTextDisplay.textContent = `Analysis Correct! ${pcrSuccess ? 'Band present.' : 'Band missing.'} Proceeding to Final Quiz!`; clearInterval(interval); initializeQuizStage(); }
+             else { gameTextDisplay.textContent = `Analysis Incorrect! ${pcrSuccess ? 'The band *was* present.' : 'The band *was* missing.'} Critical error! Restarting scan...`; pcrSuccess = false; clearInterval(interval); setTimeout(() => { initializePrimerDesignStage(); }, 4000); }
+         }
+
+
+        // --- Quiz Functions --- 
+         function generateQuiz() { quizQuestionsArray = [ { question: "PCR purpose?", options: ["Sequence DNA", "Amplify DNA", "Cut DNA", "Make proteins"], correctAnswer: "Amplify DNA", explanation: "Makes copies." }, { question: "PCR primers are?", options: ["Enzymes", "Short DNA", "A/T/C/G", "DNA sample"], correctAnswer: "Short DNA", explanation: "Define target." }, { question: "Key heat enzyme?", options: ["Ligase", "RNA Pol", "Taq Pol", "Helicase"], correctAnswer: "Taq Pol", explanation: "Heat-stable." }, { question: "Denaturation?", options: ["Primers bind", "DNA extends", "Strands separate", "Cools"], correctAnswer: "Strands separate", explanation: "Heat separates." }, { question: "Annealing?", options: ["Separate", "Primers bind", "Activate Taq", "Synthesize DNA"], correctAnswer: "Primers bind", explanation: "Cooling lets primers attach." }, { question: "Extension?", options: ["Primers degrade", "Template breaks", "Taq synthesizes DNA", "Stops"], correctAnswer: "Taq synthesizes DNA", explanation: "Taq extends." }, { question: "Why primer specificity?", options: ["Amplify all", "Amplify target", "Hotter reaction", "Not important"], correctAnswer: "Amplify target", explanation: "Prevents wrong products." }, { question: "Gel separates by?", options: ["Charge", "G/C", "Size", "Sequence"], correctAnswer: "Size", explanation: "Smaller faster." }, { question: "Why similar Tm?", options: ["Both bind well", "Faster denature", "Not important", "More cycles"], correctAnswer: "Both bind well", explanation: "Optimal annealing." }, { question: "Primer-dimers?", options: ["Long target", "Primers bind self", "Too many cycles", "Low temp"], correctAnswer: "Primers bind self", explanation: "Unwanted short product." } ]; currentQuestionIndex = 0; quizScore = 0; quizQuestionsDiv.innerHTML = ''; quizFeedbackDiv.innerHTML = ''; quizFeedbackDiv.className = 'hidden'; quizResultsDiv.classList.add('hidden'); quizSubmitButton.classList.remove('hidden'); loadQuizQuestion(); }
+         function loadQuizQuestion() { quizFeedbackDiv.innerHTML = ''; quizFeedbackDiv.className = 'hidden'; quizSubmitButton.disabled = false; if (currentQuestionIndex < quizQuestionsArray.length) { const q = quizQuestionsArray[currentQuestionIndex]; quizQuestionsDiv.innerHTML = ''; const qElem = document.createElement('div'); qElem.className = 'quiz-question'; const qText = document.createElement('p'); qText.textContent = `${currentQuestionIndex + 1}. ${q.question}`; qElem.appendChild(qText); q.options.forEach(opt => { const lbl = document.createElement('label'); lbl.className = 'quiz-option'; const inp = document.createElement('input'); inp.type = 'radio'; inp.name = `q${currentQuestionIndex}`; inp.value = opt; lbl.appendChild(inp); lbl.appendChild(document.createTextNode(opt)); qElem.appendChild(lbl); qElem.appendChild(document.createElement('br')); }); quizQuestionsDiv.appendChild(qElem); quizSubmitButton.textContent = (currentQuestionIndex === quizQuestionsArray.length - 1) ? "Show Results" : "Submit Answer"; } else { displayQuizResults(); } }
+         function submitQuiz() { const selOpt = document.querySelector(`input[name="q${currentQuestionIndex}"]:checked`); if (!selOpt) { quizFeedbackDiv.textContent = "Select answer."; quizFeedbackDiv.className = 'incorrect'; quizFeedbackDiv.classList.remove('hidden'); return; } quizSubmitButton.disabled = true; const q = quizQuestionsArray[currentQuestionIndex]; const uAns = selOpt.value; let fbHTML = `<p>Ans: ${uAns}</p>`; if (uAns === q.correctAnswer) { quizScore++; fbHTML += `<p style="color:lime;font-weight:bold;">Correct!</p>`; quizFeedbackDiv.className = 'correct'; } else { fbHTML += `<p style="color:red;font-weight:bold;">Incorrect.</p><p>Correct: ${q.correctAnswer}</p>`; quizFeedbackDiv.className = 'incorrect'; } fbHTML += `<p><em>Explain: ${q.explanation}</em></p>`; quizFeedbackDiv.innerHTML = fbHTML; quizFeedbackDiv.classList.remove('hidden'); currentQuestionIndex++; setTimeout(() => { if (currentQuestionIndex < quizQuestionsArray.length) { loadQuizQuestion(); } else { displayQuizResults(); } }, 2500); }
+         function displayQuizResults() { clearInterval(interval); stopAnimation(); hideAllSections(); quizQuestionsDiv.innerHTML = ''; quizFeedbackDiv.classList.add('hidden'); quizSubmitButton.classList.add('hidden'); quizResultsDiv.innerHTML = `Quiz Complete! Score: ${quizScore}/${quizQuestionsArray.length}.`; quizResultsDiv.classList.remove('hidden'); if (quizScore >= quizQuestionsArray.length * 0.75) { gameTextDisplay.textContent = "MISSION SUCCESSFUL! Humanity Saved!"; quizResultsDiv.innerHTML += "<br><strong style='color:lime;'>VICTORY!</strong>"; } else { gameTextDisplay.textContent = "MISSION FAILED: Quiz score too low."; quizResultsDiv.innerHTML += "<br><strong style='color:red;'>GAME OVER</strong>"; } gameState = 'gameOver'; timerDisplay.textContent = "Time Left: --:--"; startAnimation(); }
+
+
+        // --- Event Listeners ---
+        startGameButton.addEventListener('click', startGame);
+
+        // --- Initial Setup ---
+        window.onload = () => { welcomeScreen.classList.remove('hidden'); mainGameArea.classList.add('hidden'); gameExplanation.classList.add('hidden'); hideAllSections(); console.log("Page loaded, welcome screen shown."); };
+
+    </script>
+</body>
+</html>
