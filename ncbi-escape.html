@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCBI Escape Room | Markoumori</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #09090b;
+            --card-bg: #18181b;
+            --border-color: #27272a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-db: #38bdf8; /* Database Cyan */
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .nav-header {
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover { color: var(--text-main); }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--accent-db);
+            letter-spacing: -1px;
+        }
+
+        .header-desc {
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        /* --- Room Styles --- */
+        .room {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            display: none; /* Hidden by default */
+            animation: slideUp 0.4s ease forwards;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .active-room {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .room-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .status-badge {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-db);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .instruction {
+            color: #cbd5e1;
+            margin-bottom: 2rem;
+        }
+
+        .database-link {
+            display: inline-block;
+            background-color: #0f172a;
+            color: var(--accent-db);
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #1e293b;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .database-link:hover {
+            background-color: #1e293b;
+            border-color: var(--accent-db);
+        }
+
+        /* --- Form Elements --- */
+        .step {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .hint {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background-color: #09090b;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-db);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #e2e8f0;
+        }
+
+        .error-msg {
+            display: none;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* --- Success Screen --- */
+        .success-icon {
+            font-size: 4rem;
+            text-align: center;
+            display: block;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-header">
+        <a href="index.html" class="back-link">← Return to Interface</a>
+    </div>
+
+    <div class="container">
+        <h1 class="header-title">NCBI Escape Room</h1>
+        <p class="header-desc">Infiltrate the National Center for Biotechnology Information. Extract specific genomic data to bypass the security firewalls.</p>
+
+        <div id="room1" class="room active-room">
+            <div class="room-header">
+                <h2 class="room-title">Firewall 1: Structural Data</h2>
+                <span class="status-badge">Locked</span>
+            </div>
+            
+            <p class="instruction">Your first target is the human <strong>HBB</strong> (Hemoglobin subunit beta) gene. Access the database below and locate its structural parameters.</p>
+            
+            <a href="https://www.ncbi.nlm.nih.gov/gene/" target="_blank" class="database-link">Launch NCBI Gene Database ↗</a>
+
+            <div class="step">
+                <label>Data Point Alpha: Exon Count</label>
+                <span class="hint">Look closely at the graphical sequence viewer or gene structure section. How many Exons does this gene possess?</span>
+                <input type="text" id="r1_ans1" placeholder="Enter numerical value...">
+            </div>
+            
+            <div class="step">
+                <label>Data Point Beta: Official Gene ID</label>
+                <span class="hint">Locate the official NCBI Gene ID number at the top of the summary page.</span>
+                <input type="text" id="r1_ans2" placeholder="Enter ID number...">
+            </div>
+
+            <button id="btnRoom1">Verify Data & Bypass Firewall</button>
+            <div id="error1" class="error-msg">ACCESS DENIED: Data integrity failure. One or both parameters are incorrect.</div>
+        </div>
+
+        <div id="room2" class="room">
+            <div class="room-header">
+                <h2 class="room-title">Firewall 2: Genomic Context</h2>
+                <span class="status-badge">Locked</span>
+            </div>
+            
+            <p class="instruction">Excellent. Now locate a cancer-associated gene. Search the database for the human <strong>BRCA1</strong> gene to extract its mapping coordinates.</p>
+            
+            <a href="https://www.ncbi.nlm.nih.gov/gene/" target="_blank" class="database-link">Launch NCBI Gene Database ↗</a>
+
+            <div class="step">
+                <label>Data Point Alpha: Chromosome</label>
+                <span class="hint">Check the "Genomic context" section. On which specific chromosome number does this gene reside?</span>
+                <input type="text" id="r2_ans1" placeholder="Enter chromosome number...">
+            </div>
+
+            <div class="step">
+                <label>Data Point Beta: Cytogenetic Band</label>
+                <span class="hint">Find the exact cytogenetic location code (e.g., 4q21.3) listed in the Summary block.</span>
+                <input type="text" id="r2_ans2" placeholder="Enter cytogenetic band...">
+            </div>
+
+            <button id="btnRoom2">Verify Data & Bypass Firewall</button>
+            <div id="error2" class="error-msg">ACCESS DENIED: Coordinates invalid. Check the genomic context carefully.</div>
+        </div>
+
+        <div id="room3" class="room">
+            <div class="room-header">
+                <h2 class="room-title">Firewall 3: Physiological Expression</h2>
+                <span class="status-badge">Locked</span>
+            </div>
+            
+            <p class="instruction">Final security layer. Investigate the human gene responsible for producing <strong>Insulin</strong> to clear the system.</p>
+
+            <a href="https://www.ncbi.nlm.nih.gov/gene/" target="_blank" class="database-link">Launch NCBI Gene Database ↗</a>
+            
+            <div class="step">
+                <label>Data Point Alpha: Official Symbol</label>
+                <span class="hint">What is the official 3-letter gene symbol designated by the HGNC?</span>
+                <input type="text" id="r3_ans1" placeholder="Enter 3-letter symbol...">
+            </div>
+
+            <div class="step">
+                <label>Data Point Beta: Primary Expression</label>
+                <span class="hint">Scroll down to the "Expression" graphic. Which specific human organ shows the dominant primary expression for this gene?</span>
+                <input type="text" id="r3_ans2" placeholder="Enter organ name...">
+            </div>
+
+            <button id="btnRoom3">Verify Data & Decrypt Final Sector</button>
+            <div id="error3" class="error-msg">ACCESS DENIED: Expression data mismatch. Review the summary and expression sections.</div>
+        </div>
+
+        <div id="room4" class="room" style="text-align: center; border-color: var(--success);">
+            <span class="success-icon">🔓</span>
+            <h2 style="font-family: 'Space Grotesk', sans-serif; color: var(--success); font-size: 2rem; margin-bottom: 1rem;">System Compromised.</h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;">
+                Exceptional work, detective. You have successfully navigated the NCBI Gene structure, extracted genomic coordinates, and mapped physiological expression data.
+            </p>
+            <div style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 20px; border-radius: 8px; color: #a7f3d0; font-weight: 600;">
+                Log offline and show this decrypted screen to your lecturer to verify completion.
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Clean input helper
+        function clean(val) {
+            return val.toLowerCase().trim();
+        }
+
+        // Transition helper
+        function unlockRoom(currentId, nextId, errorId) {
+            document.getElementById(currentId).classList.remove('active-room');
+            document.getElementById(errorId).style.display = 'none';
+            
+            // Small delay for smooth visual transition
+            setTimeout(() => {
+                document.getElementById(nextId).classList.add('active-room');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+        }
+
+        // Room 1 Logic (HBB: 3 Exons, ID 3043)
+        document.getElementById('btnRoom1').addEventListener('click', function() {
+            let a1 = clean(document.getElementById('r1_ans1').value);
+            let a2 = clean(document.getElementById('r1_ans2').value);
+            
+            if (a1 === '3' && a2 === '3043') {
+                unlockRoom('room1', 'room2', 'error1');
+            } else {
+                document.getElementById('error1').style.display = 'block';
+            }
+        });
+
+        // Room 2 Logic (BRCA1: Chromosome 17, Band 17q21.31)
+        document.getElementById('btnRoom2').addEventListener('click', function() {
+            let a1 = clean(document.getElementById('r2_ans1').value);
+            let a2 = clean(document.getElementById('r2_ans2').value);
+            
+            if (a1 === '17' && a2 === '17q21.31') {
+                unlockRoom('room2', 'room3', 'error2');
+            } else {
+                document.getElementById('error2').style.display = 'block';
+            }
+        });
+
+        // Room 3 Logic (Insulin: INS, Pancreas)
+        document.getElementById('btnRoom3').addEventListener('click', function() {
+            let a1 = clean(document.getElementById('r3_ans1').value);
+            let a2 = clean(document.getElementById('r3_ans2').value);
+            
+            if (a1 === 'ins' && a2 === 'pancreas') {
+                unlockRoom('room3', 'room4', 'error3');
+            } else {
+                document.getElementById('error3').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
