@@ -41,7 +41,9 @@
         /* --- RevComp Tool Styles --- */
         .aux-tool { border: 1px dashed lime; padding: 15px; margin: 20px auto; max-width: 600px; text-align: left; background-color: #051a05; }
         .aux-tool-header { color: #0f0; font-weight: bold; margin-bottom: 10px; }
-        .aux-output { color: yellow; word-break: break-all; font-weight: bold; min-height: 20px; display: block; margin-top: 5px; }
+        .aux-output { color: yellow; word-break: break-all; font-weight: bold; min-height: 20px; display: block; margin-top: 5px; letter-spacing: 1px; }
+        .tool-radio-group { margin: 10px 0; font-size: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .tool-radio-group label { margin-top: 0; cursor: pointer; }
         /* --- Checkbox Style --- */
         .checkbox-group { margin-top: 15px; text-align: left; display: inline-block;}
         .checkbox-item { margin-bottom: 5px; }
@@ -52,7 +54,7 @@
         button.back-button:hover:not(:disabled) { background-color: #777; }
         button:hover:not(:disabled) { background-color: #aaff00; }
         button:disabled { background-color: #444; color: #888; cursor: not-allowed; }
-        button.small-btn { padding: 6px 12px; font-size: 14px; }
+        button.small-btn { padding: 8px 16px; font-size: 14px; margin-top: 10px;}
         .button-container { margin-top: 15px; }
         /* --- Other Sections --- */
         .quiz-question { margin: 15px auto; padding: 15px; border: 1px solid lime; border-radius: 5px; max-width: 80%; text-align: left; background-color: #1a1a1a; }
@@ -120,11 +122,19 @@
                   <input type="text" id="reversePrimerInput" placeholder="e.g., CGAT...">
 
                   <div class="aux-tool">
-                      <div class="aux-tool-header">[AUXILIARY TOOL: REVERSE COMPLEMENTER]</div>
-                      <p style="font-size: 12px; margin-top:0; color:#aaa;">Paste the sequence from the 3' end of the target strand here to calculate your reverse primer.</p>
-                      <input type="text" id="toolInput" placeholder="Paste target sequence segment here...">
-                      <button type="button" class="small-btn" onclick="runRevCompTool()">Generate Reverse Complement</button>
-                      <p style="margin-bottom:0; font-size:14px;">Resulting Primer (5' → 3'): <br><span id="toolOutput" class="aux-output">---</span></p>
+                      <div class="aux-tool-header">[AUXILIARY TOOL: SEQ MANIPULATOR]</div>
+                      <p style="font-size: 12px; margin-top:0; color:#aaa;">Highlight 20-25 bases at the 3' end of the target, copy, and paste below.</p>
+                      <input type="text" id="toolInput" placeholder="Paste DNA sequence here...">
+                      
+                      <div class="tool-radio-group">
+                          <label><input type="radio" name="toolMode" value="revcomp" checked> Reverse-Complement (Required for Reverse Primer)</label>
+                          <label><input type="radio" name="toolMode" value="comp"> Complement Only</label>
+                          <label><input type="radio" name="toolMode" value="rev"> Reverse Only</label>
+                      </div>
+
+                      <button type="button" class="small-btn" onclick="runRevCompTool()">Execute Command</button>
+                      
+                      <p style="margin-bottom:0; font-size:14px; margin-top:15px;">Output: <span id="toolLength" style="color:#aaa; font-size:12px;"></span><br><span id="toolOutput" class="aux-output">---</span></p>
                   </div>
 
                   <div class="button-container">
@@ -283,7 +293,7 @@
         // --- Game Logic Functions --- 
         function startGame() { welcomeScreen.classList.add('hidden'); mainGameArea.classList.remove('hidden'); gameExplanation.classList.remove('hidden'); stopAnimation(); initializePrimerDesignStage(); }
         
-        function initializePrimerDesignStage() { console.log("Init PrimerDesign"); gameState = 'primerDesign'; timeLeft = 600; pcrSuccess = false; calculatedProductSize = "N/A"; stopAnimation(); hideAllSections(); canvas.classList.add('hidden'); primerDesignTerminal.classList.remove('hidden'); primerDesignInputs.classList.remove('hidden'); gameTextDisplay.textContent = "Analyzing sequences... Design primers. (HURRY!)"; terminalSequenceDisplay.innerHTML = ''; terminalLineIndex = 0; clearTimeout(terminalTimeout); extractedZombieSequence = ""; sequenceInput.value = "Loading target..."; sequenceInput.readOnly = true; forwardPrimerInput.value = ""; reversePrimerInput.value = ""; document.getElementById('toolInput').value = ""; document.getElementById('toolOutput').textContent = "---"; proceedToPcrButton.classList.add('hidden'); checkPrimersButton.disabled = false; sequenceAlignmentContainer.classList.add('hidden'); typeTerminalLine(); startTimer(); }
+        function initializePrimerDesignStage() { console.log("Init PrimerDesign"); gameState = 'primerDesign'; timeLeft = 600; pcrSuccess = false; calculatedProductSize = "N/A"; stopAnimation(); hideAllSections(); canvas.classList.add('hidden'); primerDesignTerminal.classList.remove('hidden'); primerDesignInputs.classList.remove('hidden'); gameTextDisplay.textContent = "Analyzing sequences... Design primers. (HURRY!)"; terminalSequenceDisplay.innerHTML = ''; terminalLineIndex = 0; clearTimeout(terminalTimeout); extractedZombieSequence = ""; sequenceInput.value = "Loading target..."; sequenceInput.readOnly = true; forwardPrimerInput.value = ""; reversePrimerInput.value = ""; document.getElementById('toolInput').value = ""; document.getElementById('toolOutput').textContent = "---"; document.getElementById('toolLength').textContent = ""; proceedToPcrButton.classList.add('hidden'); checkPrimersButton.disabled = false; sequenceAlignmentContainer.classList.add('hidden'); typeTerminalLine(); startTimer(); }
         
         function initializePcrSetupStage() { console.log("Init PCRSetup"); gameState = 'pcrSetup'; timeLeft = 300; stopAnimation(); hideAllSections(); pcrSetupInputs.classList.remove('hidden'); canvas.classList.remove('hidden'); checkPcrSettingsButton.disabled = false; proceedToGelButton.classList.add('hidden'); primersCheckbox.checked = false; taqCheckbox.checked = false; dntpCheckbox.checked = false; mgcl2Checkbox.checked = false; bufferCheckbox.checked = false; gameTextDisplay.textContent = `Set up strict PCR parameters. Expected product: ${calculatedProductSize} bp.`; startTimer(); startAnimation(); }
         
@@ -334,7 +344,6 @@
         
         // NEW 8-BIT ENDGAME SCREEN
         function drawGameOverScreen() { 
-            // Standardized pass threshold: 80%
             const winThreshold = Math.floor(quizQuestionsArray.length * 0.8); 
             const playerWon = (quizScore >= winThreshold); 
             
@@ -381,17 +390,43 @@
             ctx.fillText("Check final readout below.", centerX, canvas.height - 15); 
         }
 
-        // --- Rev-Comp Tool Logic ---
+        // --- NEW Rev-Comp Tool Logic ---
         function runRevCompTool() {
             let input = document.getElementById('toolInput').value.toUpperCase().replace(/[^ACGT]/g, '');
             let outputSpan = document.getElementById('toolOutput');
+            let lengthSpan = document.getElementById('toolLength');
+            
+            // Get selected radio button value
+            let mode = document.querySelector('input[name="toolMode"]:checked').value;
+
             if (!input) {
-                outputSpan.textContent = "Error: Please paste a valid DNA sequence (A, C, G, T only).";
+                outputSpan.textContent = "Error: Valid DNA sequence required.";
                 outputSpan.style.color = "red";
+                lengthSpan.textContent = "";
                 return;
             }
-            outputSpan.textContent = reverseComplement(input);
+
+            let result = "";
+            if (mode === 'revcomp') {
+                result = reverseComplement(input);
+            } else if (mode === 'comp') {
+                const m={'A':'T','T':'A','C':'G','G':'C'};
+                for(let i=0; i<input.length; i++) { result += m[input[i]]; }
+            } else if (mode === 'rev') {
+                result = input.split('').reverse().join('');
+            }
+
+            outputSpan.textContent = result;
             outputSpan.style.color = "yellow";
+            lengthSpan.textContent = `(${result.length} bp)`;
+            
+            // Hard Mode Warning check
+            if (result.length < 20 || result.length > 25) {
+                lengthSpan.textContent += " - WARNING: Game requires 20-25bp!";
+                lengthSpan.style.color = "#ff4444";
+            } else {
+                lengthSpan.style.color = "#aaa";
+            }
         }
 
         // --- Primer Check Logic --- 
@@ -505,7 +540,6 @@
             timerDisplay.textContent = "Time Left: --:--"; 
             startAnimation(); 
         }
-
 
         // --- Event Listeners ---
         startGameButton.addEventListener('click', startGame);
