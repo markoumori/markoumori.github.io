@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Zombie PCR Rescue - Hard Mode</title> 
+    <title>Zombie PCR Rescue</title> 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
         /* --- Terminal Styles --- */
         .terminal-box { border: 5px solid #0f0; padding: 20px; max-width: 90%; width: 1000px; margin: 20px auto; background-color: #001100; box-shadow: 0 0 15px #0f0; font-family: 'Press Start 2P', monospace; line-height: 1.5; text-align: left; }
         .terminal-header { color: #33ff33; margin-bottom: 15px; font-size: 14px; }
-        .terminal-sequence-line { white-space: pre-wrap; font-size: 12px; margin-bottom: 5px; min-height: 1em; color: #0f0; }
+        .terminal-sequence-line { white-space: pre-wrap; word-break: break-all; font-size: 12px; margin-bottom: 5px; min-height: 1em; color: #0f0; }
         .terminal-box .gene { color: #00ffff; text-decoration: underline; background-color: transparent !important; font-weight: normal !important; }
         .terminal-box .zombie-virus { color: #ff4444; background-color: #440000 !important; font-weight: bold !important; padding: 2px 0; }
         .terminal-box .comment { color: #888; font-style: italic; }
@@ -35,9 +35,13 @@
         #primerDesignInputs, #pcrSetupInputs, #gelLoadingInputs, #preGelQuestionSection, #gelAnalysisSection { margin-top: 10px; width: 90%; max-width: 1000px; text-align: center; }
         #primerDesignInputs p, #pcrSetupInputs p, #gelLoadingInputs p, #preGelQuestionSection p, #gelAnalysisSection p { margin: 10px 0 5px 0; }
         #primerDesignInputs p[title] { cursor: help; }
-        #primerInput, #tempInput, #timeInput, #cyclesInput, #sequenceInput, #forwardPrimerInput, #reversePrimerInput, #volumeInput, #sizeGuessInput { background-color: black; color: lime; border: 1px solid lime; padding: 8px; margin: 5px auto; display: block; width: 90%; max-width: 600px; box-sizing: border-box; font-family: monospace; }
+        #primerInput, #tempInput, #timeInput, #cyclesInput, #sequenceInput, #forwardPrimerInput, #reversePrimerInput, #volumeInput, #sizeGuessInput, #toolInput { background-color: black; color: lime; border: 1px solid lime; padding: 8px; margin: 5px auto; display: block; width: 90%; max-width: 600px; box-sizing: border-box; font-family: monospace; }
         #sizeGuessInput { max-width: 150px; display: inline-block; margin-left: 10px;}
         label { margin-top: 10px; }
+        /* --- RevComp Tool Styles --- */
+        .aux-tool { border: 1px dashed lime; padding: 15px; margin: 20px auto; max-width: 600px; text-align: left; background-color: #051a05; }
+        .aux-tool-header { color: #0f0; font-weight: bold; margin-bottom: 10px; }
+        .aux-output { color: yellow; word-break: break-all; font-weight: bold; min-height: 20px; display: block; margin-top: 5px; }
         /* --- Checkbox Style --- */
         .checkbox-group { margin-top: 15px; text-align: left; display: inline-block;}
         .checkbox-item { margin-bottom: 5px; }
@@ -48,6 +52,7 @@
         button.back-button:hover:not(:disabled) { background-color: #777; }
         button:hover:not(:disabled) { background-color: #aaff00; }
         button:disabled { background-color: #444; color: #888; cursor: not-allowed; }
+        button.small-btn { padding: 6px 12px; font-size: 14px; }
         .button-container { margin-top: 15px; }
         /* --- Other Sections --- */
         .quiz-question { margin: 15px auto; padding: 15px; border: 1px solid lime; border-radius: 5px; max-width: 80%; text-align: left; background-color: #1a1a1a; }
@@ -55,7 +60,7 @@
         .quiz-option { margin: 8px 0px 8px 5px; display: block; text-align: left; }
         .quiz-option input[type="radio"] { margin-right: 8px; accent-color: lime; }
         #quizSection { text-align: center; max-width: 80%; margin-left: auto; margin-right: auto; }
-        #quizResults { margin-top: 20px; font-size: 18px; font-weight: bold; padding: 15px; border: 2px solid lime; border-radius: 5px; background-color: #222; max-width: 80%; margin-left: auto; margin-right: auto; }
+        #quizResults { margin-top: 20px; font-size: 18px; line-height: 1.5; padding: 15px; border: 2px solid lime; border-radius: 5px; background-color: #222; max-width: 80%; margin-left: auto; margin-right: auto; }
         #quizFeedback { margin-top: 10px; padding: 10px; border-radius: 3px; font-size: 14px; max-width: 80%; margin-left: auto; margin-right: auto; }
         #quizFeedback.correct { background-color: rgba(0, 255, 0, 0.2); border: 1px solid lime; }
         #quizFeedback.incorrect { background-color: rgba(255, 0, 0, 0.2); border: 1px solid red; }
@@ -78,8 +83,8 @@
 
     <div id="welcomeScreen">
          <h1>Welcome to Zombie PCR Rescue!</h1>
-         <h2>How to Play (HARD MODE):</h2>
-         <p>Time is shorter and parameters are stricter. Proceed through timed stages:</p>
+         <h2>How to Play:</h2>
+         <p>Proceed through timed stages:</p>
          <ul>
              <li>Primer Design: Terminal shows scan. Target auto-loaded. Design Fwd/Rev Primers (20-25bp). Check binding, orientation, Tm, structure. Expected size shown. Click 'Proceed' if valid.</li>
              <li>PCR Setup: Configure Temp, Time, Cycles. Select ALL necessary components. Parameters must be biologically realistic for your product!</li>
@@ -107,10 +112,21 @@
              <div id="primerDesignInputs" class="hidden">
                   <p>TARGET SEQUENCE (AUTO-LOADED):</p>
                   <input type="text" id="sequenceInput" placeholder="Loading target..." readonly>
-                  <p title="Enter 20-25 bases (ACGT only) that exactly match a segment near the start of the Target Sequence. This defines the beginning of the DNA region to copy.">Enter Forward Primer (20-25 bases):</p>
+                  
+                  <p title="Enter 20-25 bases (ACGT only) that exactly match a segment near the start of the Target Sequence.">Enter Forward Primer (20-25 bases):</p>
                   <input type="text" id="forwardPrimerInput" placeholder="e.g., ATCG...">
-                  <p title="Enter 20-25 bases (ACGT only). This sequence's *reverse complement* must match a segment near the end of the Target Sequence, *after* the forward primer binds. It defines the end of the region to copy.">Enter Reverse Primer (20-25 bases):</p>
+                  
+                  <p title="Enter 20-25 bases (ACGT only). This sequence's *reverse complement* must match a segment near the end of the Target Sequence.">Enter Reverse Primer (20-25 bases):</p>
                   <input type="text" id="reversePrimerInput" placeholder="e.g., CGAT...">
+
+                  <div class="aux-tool">
+                      <div class="aux-tool-header">[AUXILIARY TOOL: REVERSE COMPLEMENTER]</div>
+                      <p style="font-size: 12px; margin-top:0; color:#aaa;">Paste the sequence from the 3' end of the target strand here to calculate your reverse primer.</p>
+                      <input type="text" id="toolInput" placeholder="Paste target sequence segment here...">
+                      <button type="button" class="small-btn" onclick="runRevCompTool()">Generate Reverse Complement</button>
+                      <p style="margin-bottom:0; font-size:14px;">Resulting Primer (5' → 3'): <br><span id="toolOutput" class="aux-output">---</span></p>
+                  </div>
+
                   <div class="button-container">
                        <button id="checkPrimersButton" onclick="checkPrimers()">Check Primers</button>
                        <button id="proceedToPcrButton" class="hidden" onclick="proceedToPcrSetup()">Proceed to PCR Setup</button>
@@ -261,25 +277,20 @@
 
         // --- Animation Variables ---
         let animationFrameId = null; let lastTimestamp = 0; let animationElapsedTime = 0; let pcrCycleCount = 0; const GEL_RUN_DURATION_MS = 300 * 1000; const GEL_START_Y = 50; let gelBandYPos = GEL_START_Y;
-        const ladderBands = [ { bp: 1000, y: 90 }, { bp: 750, y: 100 }, { bp: 500, y: 115 }, { bp: 250, y: 135 }, { bp: 100, y: 160 }, { bp: 50, y: 175 } ]; const GEL_TARGET_BAND_Y = 160; // adjusted slightly for 101bp
+        const ladderBands = [ { bp: 1000, y: 90 }, { bp: 750, y: 100 }, { bp: 500, y: 115 }, { bp: 250, y: 135 }, { bp: 100, y: 160 }, { bp: 50, y: 175 } ]; const GEL_TARGET_BAND_Y = 160; 
 
 
         // --- Game Logic Functions --- 
         function startGame() { welcomeScreen.classList.add('hidden'); mainGameArea.classList.remove('hidden'); gameExplanation.classList.remove('hidden'); stopAnimation(); initializePrimerDesignStage(); }
         
-        // Timer reduced to 10 minutes (600s) for Primer Design
-        function initializePrimerDesignStage() { console.log("Init PrimerDesign"); gameState = 'primerDesign'; timeLeft = 600; pcrSuccess = false; calculatedProductSize = "N/A"; stopAnimation(); hideAllSections(); canvas.classList.add('hidden'); primerDesignTerminal.classList.remove('hidden'); primerDesignInputs.classList.remove('hidden'); gameTextDisplay.textContent = "Analyzing sequences... Design primers. (HURRY!)"; terminalSequenceDisplay.innerHTML = ''; terminalLineIndex = 0; clearTimeout(terminalTimeout); extractedZombieSequence = ""; sequenceInput.value = "Loading target..."; sequenceInput.readOnly = true; forwardPrimerInput.value = ""; reversePrimerInput.value = ""; proceedToPcrButton.classList.add('hidden'); checkPrimersButton.disabled = false; sequenceAlignmentContainer.classList.add('hidden'); typeTerminalLine(); startTimer(); }
+        function initializePrimerDesignStage() { console.log("Init PrimerDesign"); gameState = 'primerDesign'; timeLeft = 600; pcrSuccess = false; calculatedProductSize = "N/A"; stopAnimation(); hideAllSections(); canvas.classList.add('hidden'); primerDesignTerminal.classList.remove('hidden'); primerDesignInputs.classList.remove('hidden'); gameTextDisplay.textContent = "Analyzing sequences... Design primers. (HURRY!)"; terminalSequenceDisplay.innerHTML = ''; terminalLineIndex = 0; clearTimeout(terminalTimeout); extractedZombieSequence = ""; sequenceInput.value = "Loading target..."; sequenceInput.readOnly = true; forwardPrimerInput.value = ""; reversePrimerInput.value = ""; document.getElementById('toolInput').value = ""; document.getElementById('toolOutput').textContent = "---"; proceedToPcrButton.classList.add('hidden'); checkPrimersButton.disabled = false; sequenceAlignmentContainer.classList.add('hidden'); typeTerminalLine(); startTimer(); }
         
-        // Timer reduced to 5 minutes (300s) for PCR Setup
         function initializePcrSetupStage() { console.log("Init PCRSetup"); gameState = 'pcrSetup'; timeLeft = 300; stopAnimation(); hideAllSections(); pcrSetupInputs.classList.remove('hidden'); canvas.classList.remove('hidden'); checkPcrSettingsButton.disabled = false; proceedToGelButton.classList.add('hidden'); primersCheckbox.checked = false; taqCheckbox.checked = false; dntpCheckbox.checked = false; mgcl2Checkbox.checked = false; bufferCheckbox.checked = false; gameTextDisplay.textContent = `Set up strict PCR parameters. Expected product: ${calculatedProductSize} bp.`; startTimer(); startAnimation(); }
         
-        // Timer 2 minutes (120s)
         function initializePreGelQuestionStage() { console.log("Init PreGelQuestion"); gameState = 'preGelQuestion'; timeLeft = 120; stopAnimation(); hideAllSections(); preGelQuestionSection.classList.remove('hidden'); canvas.classList.remove('hidden'); ladderCheck.checked = false; posControlCheck.checked = false; negControlCheck.checked = false; waterCheck.checked = false; dyeCheck.checked = false; agaroseCheck.checked = false; gameTextDisplay.textContent = "Knowledge Check: Prepare the gel setup."; startTimer(); startAnimation(); }
         
-        // Timer 2 minutes (120s)
         function initializeGelLoadingStage() { console.log("Init GelLoading"); gameState = 'gelLoading'; timeLeft = 120; stopAnimation(); hideAllSections(); gelLoadingInputs.classList.remove('hidden'); canvas.classList.remove('hidden'); volumeInput.value = ''; gameTextDisplay.textContent = `PCR complete! Calculate and load correct volume.`; startTimer(); startAnimation(); } 
         
-        // Timer stays 300s for Gel Run
         function initializeGelRunStage() { console.log("Init GelRun"); gameState = 'gelRun'; timeLeft = 300; stopAnimation(); hideAllSections(); canvas.classList.remove('hidden'); gameTextDisplay.textContent = `Starting gel run...`; gelBandYPos = GEL_START_Y; startTimer(); startAnimation(); }
         
         function initializeGelAnalysisStage() { console.log("Init GelAnalysis"); gameState = 'gelAnalysis'; timeLeft = 600; stopAnimation(); hideAllSections(); gelAnalysisSection.classList.remove('hidden'); canvas.classList.remove('hidden'); sizeGuessInput.value = ''; checkSizeButton.disabled = false; sizeGuessInput.readOnly = false; gelYesButton.disabled = true; gelNoButton.disabled = true; gelYesButton.classList.add('hidden'); gelNoButton.classList.add('hidden'); gelAnalysisStep2Text.classList.add('hidden'); gameTextDisplay.textContent = "Gel run complete. Input the exact expected size (bp) first."; startTimer(); startAnimation(); }
@@ -287,8 +298,27 @@
         function initializeQuizStage() { console.log("Init Quiz"); gameState = 'quiz'; timeLeft = 900; stopAnimation(); hideAllSections(); quizSection.classList.remove('hidden'); canvas.classList.remove('hidden'); quizResultsDiv.classList.add('hidden'); gameTextDisplay.textContent = "Prepare for the final challenge!"; generateQuiz(); startTimer(); startAnimation(); }
         
         function typeTerminalLine() { if (terminalLineIndex < terminalSequenceLines.length) { const lineContent = terminalSequenceLines[terminalLineIndex]; const lineDiv = document.createElement('div'); lineDiv.className = 'terminal-sequence-line'; lineDiv.innerHTML = lineContent; terminalSequenceDisplay.appendChild(lineDiv); terminalSequenceDisplay.scrollTop = terminalSequenceDisplay.scrollHeight; if (lineContent.includes('class="zombie-virus"')) { const tempDiv = document.createElement('div'); tempDiv.innerHTML = lineContent; const span = tempDiv.querySelector('.zombie-virus'); if (span) { extractedZombieSequence = span.textContent; sequenceInput.value = extractedZombieSequence; targetSequence = extractedZombieSequence; } } terminalLineIndex++; terminalTimeout = setTimeout(typeTerminalLine, 200); } else { sequenceInput.readOnly = false; } }
+        
         function startTimer() { clearInterval(interval); animationElapsedTime = 0; lastTimestamp = performance.now(); if (timeLeft <= 0) { timerDisplay.textContent = "Time Left: 0:00"; return; } timerDisplay.textContent = `Time Left: ${Math.floor(timeLeft / 60)}:${(timeLeft % 60) < 10 ? '0' : ''}${timeLeft % 60}`; interval = setInterval(() => { timeLeft--; const minutes = Math.floor(timeLeft / 60); const seconds = timeLeft % 60; timerDisplay.textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`; if (timeLeft <= 0) { clearInterval(interval); timerDisplay.textContent = "Time Left: 0:00"; handleTimeout(); } }, 1000); }
-        function handleTimeout() { const failedStage = getStageName(gameState); console.log(`Time ran out during ${failedStage} stage.`); clearInterval(interval); stopAnimation(); if (gameState === 'gelRun') { console.log("Gel Run timer expired, proceeding to Analysis."); initializeGelAnalysisStage(); return; } hideAllSections(); gameState = 'gameOver'; gameTextDisplay.textContent = `MISSION FAILED: Time ran out during the ${failedStage} stage.`; quizResultsDiv.innerHTML = "<strong style='color:red;'>GAME OVER - OUT OF TIME</strong>"; quizResultsDiv.classList.remove('hidden'); startAnimation(); }
+        
+        function handleTimeout() { 
+            const failedStage = getStageName(gameState); 
+            console.log(`Time ran out during ${failedStage} stage.`); 
+            clearInterval(interval); 
+            stopAnimation(); 
+            if (gameState === 'gelRun') { 
+                console.log("Gel Run timer expired, proceeding to Analysis."); 
+                initializeGelAnalysisStage(); 
+                return; 
+            } 
+            hideAllSections(); 
+            gameState = 'gameOver'; 
+            gameTextDisplay.textContent = `MISSION COMPLETE.`; 
+            quizResultsDiv.innerHTML = `<strong style='color:red;'>OUTCOME: FAILURE (Ran out of time during ${failedStage})</strong>`; 
+            quizResultsDiv.classList.remove('hidden'); 
+            startAnimation(); 
+        }
+
         function getStageName(state) { switch(state) { case 'primerDesign': return 'Primer Design'; case 'pcrSetup': return 'PCR Setup'; case 'preGelQuestion': return 'Pre-Gel Check'; case 'gelLoading': return 'Gel Loading'; case 'gelRun': return 'Gel Run Simulation'; case 'gelAnalysis': return 'Gel Analysis'; case 'quiz': return 'Final Quiz'; default: return 'current'; } }
         function hideAllSections() { primerDesignTerminal.classList.add('hidden'); primerDesignInputs.classList.add('hidden'); pcrSetupInputs.classList.add('hidden'); preGelQuestionSection.classList.add('hidden'); gelLoadingInputs.classList.add('hidden'); gelAnalysisSection.classList.add('hidden'); quizSection.classList.add('hidden'); sequenceAlignmentContainer.classList.add('hidden'); quizResultsDiv.classList.add('hidden'); canvas.classList.add('hidden'); proceedToPcrButton.classList.add('hidden'); proceedToGelButton.classList.add('hidden'); }
         function renderGame() { if (gameState === 'primerDesign' || gameState === 'welcome') { canvas.classList.add('hidden'); } else { canvas.classList.remove('hidden'); } console.log("RenderGame called for state:", gameState); }
@@ -301,7 +331,68 @@
         function drawGelRunAnimation(timestamp, deltaTime) { const gelX = canvas.width / 2 - 150, gelY = 20, gelW = 300, gelH = 160; const wellY = gelY + 10, wellW = 20, wellH = 15; const ladderLaneX = gelX + 30 + 0 * (wellW + 20); const sampleLaneX = gelX + 30 + 2 * (wellW + 20); ctx.strokeStyle = 'lime'; ctx.strokeRect(gelX, gelY, gelW, gelH); ctx.fillStyle = '#222'; ctx.fillRect(gelX + 1, gelY + 1, gelW - 2, gelH - 2); ctx.fillStyle = '#000'; for (let i = 0; i < 5; i++) { ctx.fillRect(gelX + 30 + i * (wellW + 20), wellY, wellW, wellH); } ctx.strokeStyle = '#444'; for (let i = 0; i < 5; i++) { const laneX = gelX + 30 + i * (wellW + 20) + wellW / 2; ctx.beginPath(); ctx.moveTo(laneX, wellY + wellH); ctx.lineTo(laneX, gelY + gelH - 10); ctx.stroke(); } ctx.fillStyle = '#0ff'; ctx.font = '10px monospace'; ctx.textAlign = 'left'; ladderBands.forEach(band => { ctx.fillRect(ladderLaneX + 5, band.y, 10, 5); ctx.fillStyle = '#ccc'; ctx.fillText(`${band.bp}bp`, ladderLaneX + 20, band.y + 5); ctx.fillStyle = '#0ff'; }); if (pcrSuccess) { const progress = Math.min(1, animationElapsedTime / GEL_RUN_DURATION_MS); gelBandYPos = GEL_START_Y + (GEL_TARGET_BAND_Y - GEL_START_Y) * progress; gelBandYPos = Math.min(gelBandYPos, GEL_TARGET_BAND_Y); ctx.fillStyle = 'lime'; const bandHeight = 5; ctx.fillRect(sampleLaneX + 5, gelBandYPos, 10, bandHeight); } ctx.fillStyle = 'lime'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText("GEL ELECTROPHORESIS - RUNNING...", canvas.width / 2, gelY + gelH + 15); }
         function drawGelAnalysisResult() { const gelX = canvas.width / 2 - 150, gelY = 20, gelW = 300, gelH = 160; const wellY = gelY + 10, wellW = 20, wellH = 15; const ladderLaneX = gelX + 30 + 0 * (wellW + 20); const sampleLaneX = gelX + 30 + 2 * (wellW + 20); ctx.strokeStyle = 'lime'; ctx.strokeRect(gelX, gelY, gelW, gelH); ctx.fillStyle = '#222'; ctx.fillRect(gelX + 1, gelY + 1, gelW - 2, gelH - 2); ctx.fillStyle = '#000'; for (let i = 0; i < 5; i++) { ctx.fillRect(gelX + 30 + i * (wellW + 20), wellY, wellW, wellH); } ctx.strokeStyle = '#444'; for (let i = 0; i < 5; i++) { const laneX = gelX + 30 + i * (wellW + 20) + wellW / 2; ctx.beginPath(); ctx.moveTo(laneX, wellY + wellH); ctx.lineTo(laneX, gelY + gelH - 10); ctx.stroke(); } ctx.fillStyle = '#0ff'; ctx.font = '10px monospace'; ctx.textAlign = 'left'; ladderBands.forEach(band => { ctx.fillRect(ladderLaneX + 5, band.y, 10, 5); ctx.fillStyle = '#ccc'; ctx.fillText(`${band.bp}bp`, ladderLaneX + 20, band.y + 5); ctx.fillStyle = '#0ff'; }); if (pcrSuccess) { ctx.fillStyle = 'lime'; const bandHeight = 5; const finalBandY = GEL_TARGET_BAND_Y; ctx.fillRect(sampleLaneX + 5, finalBandY, 10, bandHeight); } ctx.fillStyle = 'lime'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText("GEL RESULT - INPUT SIZE & ANALYZE", canvas.width / 2, gelY + gelH + 15); }
         function drawQuizScreen() { ctx.fillStyle = 'lime'; ctx.font = '16px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("FINAL QUIZ", canvas.width / 2, canvas.height / 2 - 10); ctx.font = '12px monospace'; ctx.fillText("Answer questions below.", canvas.width / 2, canvas.height / 2 + 20); }
-        function drawGameOverScreen() { const winThreshold = quizQuestionsArray.length; const playerWon = (quizScore >= winThreshold); if (playerWon && !gameTextDisplay.textContent.includes("OUT OF TIME")) { const centerX = canvas.width / 2; const groundY = canvas.height - 30; ctx.fillStyle = 'lime'; ctx.fillRect(centerX - 10, groundY - 40, 20, 40); ctx.fillRect(centerX - 15, groundY - 60, 30, 20); ctx.beginPath(); ctx.moveTo(centerX - 10, groundY - 35); ctx.lineTo(centerX - 25, groundY - 55); ctx.moveTo(centerX + 10, groundY - 35); ctx.lineTo(centerX + 25, groundY - 55); ctx.strokeStyle = 'lime'; ctx.lineWidth = 4; ctx.stroke(); ctx.fillStyle = 'yellow'; ctx.font = '20px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("VICTORY!", canvas.width / 2, 40); } else { ctx.fillStyle = 'red'; ctx.font = '20px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("MISSION FAILED", canvas.width / 2, canvas.height / 2); } ctx.fillStyle = 'lime'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText("Check final score below.", canvas.width / 2, canvas.height - 15); }
+        
+        // NEW 8-BIT ENDGAME SCREEN
+        function drawGameOverScreen() { 
+            // Standardized pass threshold: 80%
+            const winThreshold = Math.floor(quizQuestionsArray.length * 0.8); 
+            const playerWon = (quizScore >= winThreshold); 
+            
+            const centerX = canvas.width / 2; 
+            const centerY = canvas.height / 2 + 10;
+            
+            ctx.fillStyle = 'lime'; 
+            ctx.font = '16px "Press Start 2P"'; 
+            ctx.textAlign = 'center'; 
+            ctx.fillText("MISSION COMPLETE", centerX, 30); 
+
+            if (playerWon && !gameTextDisplay.textContent.includes("OUT OF TIME")) { 
+                ctx.fillStyle = 'yellow'; 
+                ctx.fillText("SUCCESS", centerX, 60); 
+                
+                // Draw 8-Bit Trophy
+                ctx.fillStyle = 'gold'; 
+                ctx.fillRect(centerX - 15, centerY - 20, 30, 20); // cup 
+                ctx.fillRect(centerX - 5, centerY, 10, 20); // stem 
+                ctx.fillRect(centerX - 20, centerY + 20, 40, 10); // base 
+                ctx.strokeStyle = 'gold'; 
+                ctx.lineWidth = 3; 
+                ctx.strokeRect(centerX - 25, centerY - 15, 10, 15); // left handle
+                ctx.strokeRect(centerX + 15, centerY - 15, 10, 15); // right handle
+            } else { 
+                ctx.fillStyle = 'red'; 
+                ctx.fillText("FAILED", centerX, 60); 
+
+                // Draw 8-Bit Retro Skull
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(centerX - 20, centerY - 20, 40, 30); // head
+                ctx.fillRect(centerX - 10, centerY + 10, 20, 10); // jaw
+                ctx.fillStyle = '#000';
+                ctx.fillRect(centerX - 12, centerY - 10, 8, 8); // left eye
+                ctx.fillRect(centerX + 4, centerY - 10, 8, 8); // right eye
+                ctx.fillRect(centerX - 2, centerY + 2, 4, 4); // nose
+                ctx.fillRect(centerX - 6, centerY + 10, 2, 5); // tooth 1
+                ctx.fillRect(centerX + 4, centerY + 10, 2, 5); // tooth 2
+            } 
+            
+            ctx.fillStyle = 'lime'; 
+            ctx.font = '10px monospace'; 
+            ctx.textAlign = 'center'; 
+            ctx.fillText("Check final readout below.", centerX, canvas.height - 15); 
+        }
+
+        // --- Rev-Comp Tool Logic ---
+        function runRevCompTool() {
+            let input = document.getElementById('toolInput').value.toUpperCase().replace(/[^ACGT]/g, '');
+            let outputSpan = document.getElementById('toolOutput');
+            if (!input) {
+                outputSpan.textContent = "Error: Please paste a valid DNA sequence (A, C, G, T only).";
+                outputSpan.style.color = "red";
+                return;
+            }
+            outputSpan.textContent = reverseComplement(input);
+            outputSpan.style.color = "yellow";
+        }
 
         // --- Primer Check Logic --- 
         function checkPrimers() { forwardPrimer = forwardPrimerInput.value.toUpperCase().trim(); reversePrimer = reversePrimerInput.value.toUpperCase().trim(); if (!sequenceInput.readOnly) { targetSequence = sequenceInput.value.toUpperCase().replace(/\s/g, ''); } const validBaseRegex = /^[ACGT]+$/; const validPrimerLengthRegex = /^[ACGT]{20,25}$/; const validSequenceLengthRegex = /^[ACGT]{50,}$/; let errorMessage = ""; pcrSuccess = false; calculatedProductSize = "N/A"; proceedToPcrButton.classList.add('hidden'); checkPrimersButton.disabled = false; if (!targetSequence || !validBaseRegex.test(targetSequence)) { errorMessage = "TARGET sequence error."; } else if (!validSequenceLengthRegex.test(targetSequence)) { errorMessage = `TARGET sequence must be >= 50 bases (current: ${targetSequence.length}).`; } else if (!forwardPrimer || !validBaseRegex.test(forwardPrimer)) { errorMessage = "Forward primer must be A/C/G/T only."; } else if (!validPrimerLengthRegex.test(forwardPrimer)) { errorMessage = `Forward primer must be 20-25 bases (current: ${forwardPrimer.length}).`; } else if (!reversePrimer || !validBaseRegex.test(reversePrimer)) { errorMessage = "Reverse primer must be A/C/G/T only."; } else if (!validPrimerLengthRegex.test(reversePrimer)) { errorMessage = `Reverse primer must be 20-25 bases (current: ${reversePrimer.length}).`; } if (errorMessage) { gameTextDisplay.textContent = `Error: ${errorMessage}`; displayAlignment(targetSequence, forwardPrimer, reversePrimer); return; } const fwdIndex = targetSequence.indexOf(forwardPrimer); const revComp = reverseComplement(reversePrimer); const revCompIndex = targetSequence.indexOf(revComp); if (fwdIndex === -1) { errorMessage = "Forward primer does not bind."; } else if (revCompIndex === -1) { errorMessage = (targetSequence.indexOf(reversePrimer) !== -1) ? "Rev primer found, but its RevComp should bind." : "Rev primer's complement does not bind."; } else if (fwdIndex >= revCompIndex) { errorMessage = "Orientation incorrect! Fwd must start before RevComp binds. Think: 5'...[Fwd]...[RevComp]...3'."; } else if ((revCompIndex + revComp.length) <= (fwdIndex + forwardPrimer.length)) { errorMessage = "Primers overlap incorrectly."; } if (errorMessage) { gameTextDisplay.textContent = `Error: ${errorMessage}`; displayAlignment(targetSequence, forwardPrimer, reversePrimer); return; } const fwdTm = calculateTm(forwardPrimer); const revTm = calculateTm(reversePrimer); const tmDiff = Math.abs(fwdTm - revTm); let tmWarning = (tmDiff > 5) ? `High Tm difference (${tmDiff.toFixed(1)}°C). ` : ""; let structureWarning = ""; if (hasSelfComplementarity(forwardPrimer)) { structureWarning += "Fwd self-comp risk. "; } if (hasSelfComplementarity(reversePrimer)) { structureWarning += "Rev self-comp risk. "; } if (checkForHairpin(forwardPrimer)) { structureWarning += "Fwd hairpin risk. "; } if (checkForHairpin(reversePrimer)) { structureWarning += "Rev hairpin risk. "; } let combinedWarning = (tmWarning + structureWarning).trim(); pcrSuccess = true; calculatedProductSize = (revCompIndex + revComp.length) - fwdIndex; if (combinedWarning) { gameTextDisplay.textContent = `Warning: ${combinedWarning} Primers accepted. Click 'Proceed'.`; } else { gameTextDisplay.textContent = `Primers validated! Tm Diff: ${tmDiff.toFixed(1)}°C. Click 'Proceed'.`; } displayAlignment(targetSequence, forwardPrimer, reversePrimer); proceedToPcrButton.classList.remove('hidden'); checkPrimersButton.disabled = true; }
@@ -387,7 +478,33 @@
          function generateQuiz() { quizQuestionsArray = [ { question: "PCR purpose?", options: ["Sequence DNA", "Amplify DNA", "Cut DNA", "Make proteins"], correctAnswer: "Amplify DNA", explanation: "Makes copies." }, { question: "PCR primers are?", options: ["Enzymes", "Short DNA", "A/T/C/G", "DNA sample"], correctAnswer: "Short DNA", explanation: "Define target." }, { question: "Key heat enzyme?", options: ["Ligase", "RNA Pol", "Taq Pol", "Helicase"], correctAnswer: "Taq Pol", explanation: "Heat-stable." }, { question: "Denaturation?", options: ["Primers bind", "DNA extends", "Strands separate", "Cools"], correctAnswer: "Strands separate", explanation: "Heat separates." }, { question: "Annealing?", options: ["Separate", "Primers bind", "Activate Taq", "Synthesize DNA"], correctAnswer: "Primers bind", explanation: "Cooling lets primers attach." }, { question: "Extension?", options: ["Primers degrade", "Template breaks", "Taq synthesizes DNA", "Stops"], correctAnswer: "Taq synthesizes DNA", explanation: "Taq extends." }, { question: "Why primer specificity?", options: ["Amplify all", "Amplify target", "Hotter reaction", "Not important"], correctAnswer: "Amplify target", explanation: "Prevents wrong products." }, { question: "Gel separates by?", options: ["Charge", "G/C", "Size", "Sequence"], correctAnswer: "Size", explanation: "Smaller faster." }, { question: "Why similar Tm?", options: ["Both bind well", "Faster denature", "Not important", "More cycles"], correctAnswer: "Both bind well", explanation: "Optimal annealing." }, { question: "Primer-dimers?", options: ["Long target", "Primers bind self", "Too many cycles", "Low temp"], correctAnswer: "Primers bind self", explanation: "Unwanted short product." } ]; currentQuestionIndex = 0; quizScore = 0; quizQuestionsDiv.innerHTML = ''; quizFeedbackDiv.innerHTML = ''; quizFeedbackDiv.className = 'hidden'; quizResultsDiv.classList.add('hidden'); quizSubmitButton.classList.remove('hidden'); loadQuizQuestion(); }
          function loadQuizQuestion() { quizFeedbackDiv.innerHTML = ''; quizFeedbackDiv.className = 'hidden'; quizSubmitButton.disabled = false; if (currentQuestionIndex < quizQuestionsArray.length) { const q = quizQuestionsArray[currentQuestionIndex]; quizQuestionsDiv.innerHTML = ''; const qElem = document.createElement('div'); qElem.className = 'quiz-question'; const qText = document.createElement('p'); qText.textContent = `${currentQuestionIndex + 1}. ${q.question}`; qElem.appendChild(qText); q.options.forEach(opt => { const lbl = document.createElement('label'); lbl.className = 'quiz-option'; const inp = document.createElement('input'); inp.type = 'radio'; inp.name = `q${currentQuestionIndex}`; inp.value = opt; lbl.appendChild(inp); lbl.appendChild(document.createTextNode(opt)); qElem.appendChild(lbl); qElem.appendChild(document.createElement('br')); }); quizQuestionsDiv.appendChild(qElem); quizSubmitButton.textContent = (currentQuestionIndex === quizQuestionsArray.length - 1) ? "Show Results" : "Submit Answer"; } else { displayQuizResults(); } }
          function submitQuiz() { const selOpt = document.querySelector(`input[name="q${currentQuestionIndex}"]:checked`); if (!selOpt) { quizFeedbackDiv.textContent = "Select answer."; quizFeedbackDiv.className = 'incorrect'; quizFeedbackDiv.classList.remove('hidden'); return; } quizSubmitButton.disabled = true; const q = quizQuestionsArray[currentQuestionIndex]; const uAns = selOpt.value; let fbHTML = `<p>Ans: ${uAns}</p>`; if (uAns === q.correctAnswer) { quizScore++; fbHTML += `<p style="color:lime;font-weight:bold;">Correct!</p>`; quizFeedbackDiv.className = 'correct'; } else { fbHTML += `<p style="color:red;font-weight:bold;">Incorrect.</p><p>Correct: ${q.correctAnswer}</p>`; quizFeedbackDiv.className = 'incorrect'; } fbHTML += `<p><em>Explain: ${q.explanation}</em></p>`; quizFeedbackDiv.innerHTML = fbHTML; quizFeedbackDiv.classList.remove('hidden'); currentQuestionIndex++; setTimeout(() => { if (currentQuestionIndex < quizQuestionsArray.length) { loadQuizQuestion(); } else { displayQuizResults(); } }, 2500); }
-         function displayQuizResults() { clearInterval(interval); stopAnimation(); hideAllSections(); quizQuestionsDiv.innerHTML = ''; quizFeedbackDiv.classList.add('hidden'); quizSubmitButton.classList.add('hidden'); quizResultsDiv.innerHTML = `Quiz Complete! Score: ${quizScore}/${quizQuestionsArray.length}.`; quizResultsDiv.classList.remove('hidden'); if (quizScore >= quizQuestionsArray.length * 0.75) { gameTextDisplay.textContent = "MISSION SUCCESSFUL! Humanity Saved!"; quizResultsDiv.innerHTML += "<br><strong style='color:lime;'>VICTORY!</strong>"; } else { gameTextDisplay.textContent = "MISSION FAILED: Quiz score too low."; quizResultsDiv.innerHTML += "<br><strong style='color:red;'>GAME OVER</strong>"; } gameState = 'gameOver'; timerDisplay.textContent = "Time Left: --:--"; startAnimation(); }
+         
+         // STANDARDIZED WIN CONDITION
+         function displayQuizResults() { 
+            clearInterval(interval); 
+            stopAnimation(); 
+            hideAllSections(); 
+            quizQuestionsDiv.innerHTML = ''; 
+            quizFeedbackDiv.classList.add('hidden'); 
+            quizSubmitButton.classList.add('hidden'); 
+            
+            const winThreshold = Math.floor(quizQuestionsArray.length * 0.8); // 8/10
+            let finalHTML = `Quiz Complete! Score: ${quizScore}/${quizQuestionsArray.length}.<br><br>`;
+
+            if (quizScore >= winThreshold) { 
+                gameTextDisplay.textContent = "MISSION COMPLETE."; 
+                finalHTML += "<strong style='color:lime;'>OUTCOME: SUCCESS. Humanity is safe!</strong>"; 
+            } else { 
+                gameTextDisplay.textContent = "MISSION COMPLETE."; 
+                finalHTML += "<strong style='color:red;'>OUTCOME: FAILURE. The zombie virus spreads.</strong>"; 
+            } 
+
+            quizResultsDiv.innerHTML = finalHTML;
+            quizResultsDiv.classList.remove('hidden');
+            gameState = 'gameOver'; 
+            timerDisplay.textContent = "Time Left: --:--"; 
+            startAnimation(); 
+        }
 
 
         // --- Event Listeners ---
