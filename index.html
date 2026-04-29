@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foundation Biology</title>
+    <title>BMS0005</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #09090b; /* Deep obsidian */
+            --bg-color: #09090b;
             --card-bg: #18181b;
             --border-color: #27272a;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --accent-color: #e11d48; /* Sharp crimson */
+            --accent-color: #e11d48; 
         }
 
         body {
@@ -25,7 +25,6 @@
             line-height: 1.6;
         }
 
-        /* --- Hero Section --- */
         header {
             text-align: center;
             padding: 6rem 2rem 4rem 2rem;
@@ -49,7 +48,6 @@
             font-weight: 300;
         }
 
-        /* --- Grid Layout --- */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -80,7 +78,6 @@
             margin-bottom: 4rem;
         }
 
-        /* --- Sleek Cards --- */
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -100,7 +97,6 @@
             box-shadow: 0 10px 30px -10px rgba(225, 29, 72, 0.2);
         }
 
-        /* Subtle top highlight on hover */
         .card::before {
             content: "";
             position: absolute;
@@ -132,7 +128,6 @@
             flex-grow: 1;
         }
 
-        /* --- Activity Tags --- */
         .tag-container {
             display: flex;
             gap: 10px;
@@ -150,10 +145,10 @@
 
         .tag-retro { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
         .tag-database { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .tag-seq { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
         .tag-timeline { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
         .tag-theory { background: rgba(167, 139, 250, 0.1); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.3); }
 
-        /* --- Footer --- */
         footer {
             text-align: center;
             padding: 2rem;
@@ -167,7 +162,7 @@
 
     <header>
         <h1 class="hero-title">BMS0005.</h1>
-        <p class="hero-subtitle">Foundation Year Biosciences // Interactive modules, simulations, and database training designed to bridge theory and application.</p>
+        <p class="hero-subtitle">Foundation Year Bioscienceslogy // Interactive modules, simulations, and database training designed to bridge theory and application.</p>
     </header>
 
     <div class="container">
@@ -180,6 +175,14 @@
                 </div>
                 <h2 class="card-title">Zombie Virus PCR</h2>
                 <p class="card-desc">A hard-mode retro simulation. Design valid primers, calculate reaction volumes, and run a virtual gel to identify the pathogen before time runs out.</p>
+            </a>
+
+            <a href="pcr-sequencing.html" class="card">
+                <div class="tag-container">
+                    <span class="tag tag-seq">Data Analysis</span>
+                </div>
+                <h2 class="card-title">PCR Variant Analysis</h2>
+                <p class="card-desc">Check PCR products via sequencing. Align patient sequences against a wild-type reference to identify and classify point mutations and indels.</p>
             </a>
 
             <a href="ncbi-escape.html" class="card">
@@ -213,7 +216,7 @@
     </div>
 
     <footer>
-        &copy; 2026 Markoumori. Built for BMS0005 Foundation Year Biosciences.
+        &copy; 2026 AM. Built for Foundation Year Biosciences.
     </footer>
 
 </body>
